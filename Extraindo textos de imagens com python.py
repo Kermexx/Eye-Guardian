@@ -18,7 +18,7 @@ for arquivo in arquivos_imagens: #Ele vai percorrer cada arquivo na lista arquiv
         texto = pytesseract.image_to_string(caminho_imagem) #Usamos o Tesseract OCR para extrair texto da imagem e armazenamos o resultado na variável texto.
 
         texto_total.append(texto)  # Adiciona o texto da imagem à lista de texto_total
-        texto_completo = '\n'.join(texto_total)
+        texto_completo = '\n'.join(texto_total) #vai contatenar todos os textos da imagem em uma única string
         numeros_rg = re.findall(padrao_rg_brasileiro, texto_completo) #essa linha vai procurar no texto extraido da imagem o padrão do RG
 
         if numeros_rg:
