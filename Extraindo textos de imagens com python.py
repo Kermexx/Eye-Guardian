@@ -1,3 +1,4 @@
+#Bibliotecas usadas os, re e pytrsseract
 import re #Esta linha importa o módulo re, que é usado para trabalhar com expressões regulares. Expressões regulares são padrões de pesquisa que você pode usar para encontrar padrões em texto.
 from pytesseract import pytesseract
 import os #Esta linha importa o módulo os, que é usado para lidar com operações relacionadas a sistemas de arquivos, como listar arquivos em um diretório.
