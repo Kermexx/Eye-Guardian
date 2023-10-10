@@ -1,7 +1,7 @@
 import re #Esta linha importa o módulo re, que é usado para trabalhar com expressões regulares. Expressões regulares são padrões de pesquisa que você pode usar para encontrar padrões em texto.
 from pytesseract import pytesseract
 import os #Esta linha importa o módulo os, que é usado para lidar com operações relacionadas a sistemas de arquivos, como listar arquivos em um diretório.
-from PIL import Image
+from PIL import Image #< Ignora isso, é só para mostrar qual eu tentei usar para rotacionar as imagens (Deu errado)
 
 caminho_tesseract = "E:\\Tesseract\\tesseract.exe"
 pytesseract.tesseract_cmd = caminho_tesseract #Esta linha configura o caminho do executável do Tesseract para que o PyTesseract saiba onde encontrá-lo quando for necessário.
