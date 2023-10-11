@@ -1,29 +1,102 @@
-#Bibliotecas usadas os, re e pytrsseract
-import re #Esta linha importa o módulo re, que é usado para trabalhar com expressões regulares. Expressões regulares são padrões de pesquisa que você pode usar para encontrar padrões em texto.
-from pytesseract import pytesseract
-import os #Esta linha importa o módulo os, que é usado para lidar com operações relacionadas a sistemas de arquivos, como listar arquivos em um diretório.
-from PIL import Image #< Ignora isso, é só para mostrar qual eu tentei usar para rotacionar as imagens (Deu errado)
+"""Bibliotecas usadas: os, pytesseract, re, PIL, cv2 (os manipula arquivos e diretórios, pytesseract extrai textos de imagens,
+re encontra padrões no texto, PIL trabalha com imagens"""
+import os
+import pytesseract
+import re
+from PIL import Image
+import cv2
 
-caminho_tesseract = "E:\\Tesseract\\tesseract.exe"
-pytesseract.tesseract_cmd = caminho_tesseract #Esta linha configura o caminho do executável do Tesseract para que o PyTesseract saiba onde encontrá-lo quando for necessário.
-pasta_imagens = "E:\\teste" #o diretório onde estão as imagens
-arquivos_imagens = os.listdir(pasta_imagens) # Aqui, usamos o módulo "os" para listar todos os arquivos na pasta de imagens.
-padrao_rg_brasileiro = r'\d{2}\.\d{3}\.\d{3}-\d'
+# Configura o caminho para o executável Tesseract OCR (altere o caminho conforme necessário)
+pytesseract.pytesseract.tesseract_cmd = r'E:\\Tesseract\\tesseract.exe'
 
-texto_total = []
+RG_lista = []
 
-for arquivo in arquivos_imagens: #Ele vai percorrer cada arquivo na lista arquivos_imagens um por um.
-    if arquivo.endswith(('.jpg', '.png', '.bmp')): #se o arquivo terminar com .jpg, .png, .bmp
-        caminho_imagem = os.path.join(pasta_imagens, arquivo) #esta linha cria o caminho completo para o arquivo de imagem combinando o caminho da pasta (pasta_imagens) e o nome do arquivo (arquivo) usando a função os.path.join()
 
-        texto = pytesseract.image_to_string(caminho_imagem) #Usamos o Tesseract OCR para extrair texto da imagem e armazenamos o resultado na variável texto.
 
-        texto_total.append(texto)  # Adiciona o texto da imagem à lista de texto_total
-        texto_completo = '\n'.join(texto_total) #vai contatenar todos os textos da imagem em uma única string
-        numeros_rg = re.findall(padrao_rg_brasileiro, texto_completo) #essa linha vai procurar no texto extraido da imagem o padrão do RG
+def realcar_contraste(imagem):
+    # Aplicar realce de contraste para realçar o texto
+    contraste = ImageEnhance.Contrast(imagem)
+    imagem_realcada = contraste.enhance(2.0)  # Ajuste o valor de contraste conforme necessário
 
-        if numeros_rg:
-            for rg in numeros_rg:
-                print(f"Números de RG encontrado: {rg}")
+    return imagem_realcada
 
-                #Coloquei a lista texto_total e depois o texto_completo(onde vai contatenar todos os textos da imagem em uma única string) pq estava puxando só um RG
+def binarizar_imagem(caminho_imagem):
+    try:
+        imagem = Image.open(caminho_imagem)
+        imagem_cinza = imagem.convert('L')  # Converte para escala de cinza
+        _, imagem_bin = cv2.threshold(np.array(imagem_cinza), 128, 255, cv2.THRESH_BINARY)  # Binarização
+
+        # Salvar a imagem binarizada temporariamente
+        caminho_temporario = "temp_image.png"
+        cv2.imwrite(caminho_temporario, imagem_bin)
+
+        texto_extraido = extrair_texto_de_imagem(caminho_temporario)
+
+        os.remove(caminho_temporario)  # Remove a imagem temporária
+
+        return texto_extraido
+    except Exception as e:
+        print(f"Erro ao extrair texto da imagem {caminho_imagem}: {str(e)}")
+        return None
+
+def extrair_texto_de_imagem(caminho_imagem): #Esta linha define uma função chamada extrair_texto_de_imagem que precisa de um endereço (caminho) de uma imagem como entrada(não mexe nisso, o caminho_imagem vai ser definido depois).
+    try:
+        imagem = Image.open(caminho_imagem) #Nesta linha, abrimos a imagem usando um programa chamado PIL (Pillow) e a guardamos em uma variável chamada "imagem".
+        texto = pytesseract.image_to_string(imagem, lang='eng') #Aqui, usamos um programa chamado Tesseract para pegar o texto da imagem que abrimos na etapa anterior. Colocamos esse texto na variável texto.
+        return texto #Se conseguirmos pegar o texto com sucesso, nós o entregamos (retornamos) para quem chamou a função.
+    except Exception as e: #Agora, se algo der errado ao tentar abrir a imagem ou pegar o texto dela, vamos lidar com esse problema.
+        print(f"Erro ao extrair texto da imagem {caminho_imagem}: {str(e)}") #Neste ponto, nós mostramos uma mensagem de erro que diz qual imagem teve o problema e qual foi o erro.
+        return None #retora none caso tenha algum erro
+
+
+# Função para encontrar números de RG em um texto
+def encontrar_rg(texto):
+    # Padrão de expressão regular para um RG brasileiro
+    padrao_rg = r"\b\d{2}\.\d{3}\.\d{3}-\d{1,2}\b"
+
+    # Procura por correspondências no texto
+    rg_encontrados = re.findall(padrao_rg, texto)
+
+    return rg_encontrados
+
+
+# Diretório onde as imagens estão localizadas (mude para o seu diretório de imagens)
+diretorio_imagens = r'E:\\teste'
+
+# Percorre os arquivos no diretório
+for arquivo in os.listdir(diretorio_imagens):
+    caminho_arquivo = os.path.join(diretorio_imagens, arquivo)
+
+    # Verifica se o arquivo é uma imagem (você pode ajustar os tipos de arquivo conforme necessário)
+    if arquivo.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff')):
+
+        # Extrai texto da imagem em várias rotações
+        resultados_texto = []
+        for angulo in [0, 90, 180, 270]:  # Rotações em graus (0, 90, 180, 270)
+            imagem_rotacionada = Image.open(caminho_arquivo).rotate(angulo, expand=True)
+            caminho_temporario = "temp_image.png"
+            imagem_rotacionada.save(caminho_temporario)
+            texto_extraido = extrair_texto_de_imagem(caminho_temporario)
+            if texto_extraido:
+                resultados_texto.append(texto_extraido)
+            os.remove(caminho_temporario)  # Remove a imagem temporária
+
+        # Combine os resultados da extração de texto de todas as rotações
+        texto_completo = " ".join(resultados_texto)
+
+        if texto_completo:
+            # Encontra RGs no texto completo
+            rgs = encontrar_rg(texto_completo)
+
+
+            if rgs:
+                print(f"RG(s) encontrado(s) no arquivo {arquivo}:")
+                for rg in rgs:
+                    print(rg)
+                RG_lista.append(rg)
+            else:
+                print(f"Nenhum RG encontrado no arquivo {arquivo}")
+        else:
+            print(f"Não foi possível extrair texto do arquivo {arquivo}")
+
+print(RG_lista)
