@@ -16,7 +16,6 @@ import openpyxl  # Para lidar com arquivos XLSX
 # Define o caminho para o arquivo de credenciais do Google Cloud Vision
 key_path = r'E:\Lucas\Pojetos pycharm\ImagemIA\ocr-challenge-401815-40f9758a4218.json'
 
-# Configura a variável de ambiente para apontar para o arquivo de credenciais
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_path
 
 religioes = [
@@ -105,7 +104,6 @@ def extract_sensitive_info_from_xlsx(xlsx_path, results):
                         if not rg_in_cpf:
                             sensitive_info.append(('RG', rg_formatado))
 
-                    # Add sensitive information found
                     sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
                     sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
                     sensitive_info.extend([('Email', email) for email in matches_email])
@@ -115,7 +113,6 @@ def extract_sensitive_info_from_xlsx(xlsx_path, results):
                     # Extrai informações sobre religiões
                     sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', cell_value, 'Religião',sensitive_info)
                     sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', cell_value,'Cor/Etnia', sensitive_info)
-    # Add the extracted sensitive information to the results dictionary
     if sensitive_info:
         results[xlsx_path] = results.get(xlsx_path, [])
         results[xlsx_path].extend(sensitive_info)
@@ -369,13 +366,6 @@ def process_directory_with_txt(directory_path, results):
                 txt_path = os.path.join(root, filename)
                 results = extract_sensitive_info_from_txt(txt_path, results)
 
-
-# Adiciona suporte para arquivos DOCX
-
-import os
-import re
-from docx import Document
-
 # Função para extrair informações sensíveis de um arquivo DOCX
 def extract_sensitive_info_from_docx(docx_path_or_text, results):
     if os.path.isfile(docx_path_or_text):  # Verifica se é um caminho de arquivo
@@ -485,4 +475,3 @@ for path, data in results.items():
         print(f"{tipo}: {valor}")
         if tipo == 'Cartão de Crédito' and len(info) > 2:
             print(f"Operadora: {operadora}")
-
