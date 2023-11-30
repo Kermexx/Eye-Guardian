@@ -11,10 +11,15 @@ from google.cloud import vision
 from docx import Document  # Para lidar com arquivos DOCX
 from pptx import Presentation
 import openpyxl  # Para lidar com arquivos XLSX
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
+from send2trash import send2trash
+
 
 
 # Define o caminho para o arquivo de credenciais do Google Cloud Vision
-key_path = r'E:\Lucas\Pojetos pycharm\ImagemIA\ocr-challenge-401815-40f9758a4218.json'
+key_path = r''
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_path
 
@@ -456,7 +461,7 @@ def process_directory(directory_path, results):
 
 
 # Define o caminho do diretório a ser processado
-caminho_diretorio = 'E:/teste'
+caminho_diretorio = ''
 results = {}
 
 # Chama a função para processar o diretório e seus subdiretórios, incluindo arquivos PDF, TXT e DOCX
@@ -475,3 +480,85 @@ for path, data in results.items():
         print(f"{tipo}: {valor}")
         if tipo == 'Cartão de Crédito' and len(info) > 2:
             print(f"Operadora: {operadora}")
+class ScannerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Mountain")
+
+        self.key_path = tk.StringVar()
+        self.directory_path = tk.StringVar()
+
+        tk.Label(root, text="Selecione o arquivo de chave JSON:").pack(pady=10)
+        tk.Entry(root, textvariable=self.key_path, state='disabled', width=40).pack(pady=5)
+        tk.Button(root, text="Selecionar Chave JSON", command=self.choose_key_file).pack(pady=5)
+
+        tk.Label(root, text="Selecione o diretório:").pack(pady=10)
+        tk.Entry(root, textvariable=self.directory_path, state='disabled', width=40).pack(pady=5)
+        tk.Button(root, text="Escolher Diretório", command=self.choose_directory).pack(pady=5)
+        tk.Button(root, text="Começar o Scan", command=self.start_scan).pack(pady=10)
+
+        self.results_text = tk.Text(root, height=20, width=80)
+        self.results_text.pack(pady=10)
+
+        tk.Button(root, text="Excluir Arquivos", command=self.delete_files).pack(pady=10)
+        tk.Button(root, text="Sair", command=root.destroy).pack(pady=10)  # Novo botão para sair
+
+    def choose_key_file(self):
+        key_file = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
+        if key_file:
+            self.key_path.set(key_file)
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_file
+
+    def choose_directory(self):
+        directory = filedialog.askdirectory()
+        if directory:
+            self.directory_path.set(directory)
+
+    def start_scan(self):
+        directory_path = self.directory_path.get()
+        if directory_path:
+            results = {}
+            process_directory(directory_path,
+                              results)  # A função process_directory não está definida no código fornecido.
+
+            sensitive_files = []  # Armazena os caminhos dos arquivos sensíveis encontrados
+
+            for path, data in results.items():
+                results[path] = list(set(data))
+                sensitive_files.append(path)
+
+            self.results_text.delete('1.0', tk.END)
+
+            for path, data in results.items():
+                path = os.path.normpath(path)
+                self.results_text.insert(tk.END, f"Informações sensíveis encontradas em: {path}\n")
+
+                types_found = set(info[0] for info in data)
+                for info_type in types_found:
+                    self.results_text.insert(tk.END, f"{info_type} encontrado\n")
+
+                self.results_text.insert(tk.END, "\n")
+
+            # Armazenar os caminhos dos arquivos sensíveis para uso posterior
+            self.sensitive_files = sensitive_files
+
+    def delete_files(self):
+        directory_path = self.directory_path.get()
+        if directory_path:
+            confirmation = messagebox.askyesno("Confirmação",
+                                               "Tem certeza de que deseja excluir todos os arquivos sensíveis no diretório?")
+            if confirmation:
+                for root, dirs, files in os.walk(directory_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        if os.path.isfile(file_path) and file_path in self.sensitive_files:
+                            os.remove(file_path)
+
+                messagebox.showinfo("Concluído", "Todos os arquivos sensíveis foram excluídos com sucesso.")
+
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ScannerApp(root)
+    root.mainloop()
