@@ -16,8 +16,11 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from send2trash import send2trash
+from tkinter import Canvas, Entry, Text, Button, PhotoImage
+from pathlib import Path
 
-
+OUTPUT_PATH = Path(__file__).parent
+ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Users\lucas\OneDrive\Área de Trabalho\Output do design\build\assets\frame0")
 
 # Define o caminho para o arquivo de credenciais do Google Cloud Vision
 key_path = r''
@@ -481,38 +484,153 @@ for path, data in results.items():
         print(f"{tipo}: {valor}")
         if tipo == 'Cartão de Crédito' and len(info) > 2:
             print(f"Operadora: {operadora}")
+
+def relative_to_assets(path: str) -> Path:
+    return ASSETS_PATH / Path(path)
+
 class ScannerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Mountain")
-        self.root.configure(bg="#ececec")  # Cor de fundo
-
-        # Seção para a entrada de caminhos
-        path_section = tk.Frame(root, bg="#ececec")
-        path_section.pack(pady=10)
-
+        self.root.title("Defense Mountain")
+        self.root.geometry("754x545")
+        self.root.configure(bg="#FFFFFF")
         self.key_path = tk.StringVar()
         self.directory_path = tk.StringVar()
 
-        tk.Button(path_section, text="⬜ Selecionar Chave JSON", command=self.choose_key_file).pack(side="left", padx=5)
-        tk.Entry(path_section, textvariable=self.key_path, state='disabled', width=40).pack(side="left", padx=5)
+        self.canvas = tk.Canvas(
+            root,
+            bg="#FFFFFF",
+            height=545,
+            width=754,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+        self.canvas.place(x=0, y=0)
 
-        tk.Button(path_section, text="🟩 Escolher Diretório", command=self.choose_directory).pack(side="left", padx=5)
-        tk.Entry(path_section, textvariable=self.directory_path, state='disabled', width=40).pack(side="left", padx=5)
-        tk.Button(path_section, text="🟦 Começar o Scan", command=self.start_scan).pack(side="left", padx=5)
+        self.canvas.create_rectangle(
+            0.0,
+            173.0,
+            754.0,
+            424.0,
+            fill="#000000",
+            outline=""
+        )
 
-        # Seção para os resultados
-        result_section = tk.Frame(root, bg="#ececec")
-        result_section.pack(pady=10)
+        self.canvas.create_rectangle(
+            6.0,
+            0.0,
+            766.0,
+            54.0,
+            fill="#8A487B",
+            outline=""
+        )
 
-        self.results_text = tk.Text(root, height=20, width=80)
+        self.canvas.create_text(
+            17.0,
+            7.0,
+            anchor="nw",
+            text="Defense Mountain",
+            fill="#FFFFFF",
+            font=("InknutAntiqua Regular", 24 * -1)
+        )
+
+        self.image_image_1 = tk.PhotoImage(file=relative_to_assets("image_1.png"))
+        self.image_1 = self.canvas.create_image(
+            706.0,
+            27.0,
+            image=self.image_image_1
+        )
+
+        self.button_image_1 = tk.PhotoImage(file=relative_to_assets("button_1.png"))
+        self.button_1 = tk.Button(
+            image=self.button_image_1,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.choose_directory,
+            relief="flat"
+        )
+        self.button_1.place(
+            x=582.0,
+            y=65.0,
+            width=140.0,
+            height=38.0
+        )
+
+        self.button_image_2 = tk.PhotoImage(file=relative_to_assets("button_2.png"))
+        self.button_2 = tk.Button(
+            image=self.button_image_2,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.choose_key_file,
+            relief="flat"
+        )
+        self.button_2.place(
+            x=17.0,
+            y=69.0,
+            width=132.0,
+            height=38.0
+        )
+
+        self.button_image_3 = tk.PhotoImage(file=relative_to_assets("button_3.png"))
+        self.button_3 = tk.Button(
+            image=self.button_image_3,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.start_scan,
+            relief="flat"
+        )
+        self.button_3.place(
+            x=274.0,
+            y=97.0,
+            width=190.0,
+            height=65.0
+        )
+
+        self.button_image_4 = tk.PhotoImage(file=relative_to_assets("button_4.png"))
+        self.button_4 = tk.Button(
+            image=self.button_image_4,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.delete_files,
+            relief="flat"
+        )
+        self.button_4.place(
+            x=141.0,
+            y=451.0,
+            width=133.0,
+            height=38.0
+        )
+
+        self.button_image_5 = tk.PhotoImage(file=relative_to_assets("button_5.png"))
+        self.button_5 = tk.Button(
+            image=self.button_image_5,
+            borderwidth=0,
+            highlightthickness=0,
+            command=root.destroy,
+            relief="flat"
+        )
+        self.button_5.place(
+            x=455.0,
+            y=451.0,
+            width=133.0,
+            height=38.0
+        )
+
+        self.results_text = tk.Text(root, height=13, width=90, fg="#000000")
         self.results_text.pack(pady=10)
+        self.results_text.lift(self.canvas)  # Eleva a caixa de texto sobre o canvas
 
-        action_buttons = tk.Frame(root, bg="#ececec")
-        action_buttons.pack(pady=10)
+        cor_fundo_caixa_texto = "#000000"
+        cor_texto_caixa_texto = "#FFFFFF"
+        self.results_text.configure(bg=cor_fundo_caixa_texto, fg=cor_texto_caixa_texto)
 
-        tk.Button(action_buttons, text="🟪 Excluir Arquivos", command=self.delete_files).pack(side="left", padx=5)
-        tk.Button(action_buttons, text="🟫 Sair", command=root.destroy).pack(side="left", padx=5)
+        # Ajuste manual da localização da caixa de resultado
+        x_position = 18  # Ajuste a posição X conforme necessário
+        y_position = 190  # Ajuste a posição Y conforme necessário
+        self.results_text.place(x=x_position, y=y_position)
+
+        self.sensitive_files = []
 
     def choose_key_file(self):
         key_file = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
@@ -529,10 +647,9 @@ class ScannerApp:
         directory_path = self.directory_path.get()
         if directory_path:
             results = {}
-            process_directory(directory_path,
-                              results)  # A função process_directory não está definida no código fornecido.
+            process_directory(directory_path, results)  # Assuming process_directory is defined somewhere
 
-            sensitive_files = []  # Armazena os caminhos dos arquivos sensíveis encontrados
+            sensitive_files = []
 
             for path, data in results.items():
                 results[path] = list(set(data))
@@ -550,7 +667,6 @@ class ScannerApp:
 
                 self.results_text.insert(tk.END, "\n")
 
-            # Armazenar os caminhos dos arquivos sensíveis para uso posterior
             self.sensitive_files = sensitive_files
 
     def delete_files(self):
@@ -566,7 +682,6 @@ class ScannerApp:
                             os.remove(file_path)
 
                 messagebox.showinfo("Concluído", "Todos os arquivos sensíveis foram excluídos com sucesso.")
-
 
 
 if __name__ == "__main__":
