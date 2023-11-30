@@ -14,6 +14,7 @@ import openpyxl  # Para lidar com arquivos XLSX
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import ttk
 from send2trash import send2trash
 
 
@@ -484,24 +485,34 @@ class ScannerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Mountain")
+        self.root.configure(bg="#ececec")  # Cor de fundo
+
+        # Seção para a entrada de caminhos
+        path_section = tk.Frame(root, bg="#ececec")
+        path_section.pack(pady=10)
 
         self.key_path = tk.StringVar()
         self.directory_path = tk.StringVar()
 
-        tk.Label(root, text="Selecione o arquivo de chave JSON:").pack(pady=10)
-        tk.Entry(root, textvariable=self.key_path, state='disabled', width=40).pack(pady=5)
-        tk.Button(root, text="Selecionar Chave JSON", command=self.choose_key_file).pack(pady=5)
+        tk.Button(path_section, text="⬜ Selecionar Chave JSON", command=self.choose_key_file).pack(side="left", padx=5)
+        tk.Entry(path_section, textvariable=self.key_path, state='disabled', width=40).pack(side="left", padx=5)
 
-        tk.Label(root, text="Selecione o diretório:").pack(pady=10)
-        tk.Entry(root, textvariable=self.directory_path, state='disabled', width=40).pack(pady=5)
-        tk.Button(root, text="Escolher Diretório", command=self.choose_directory).pack(pady=5)
-        tk.Button(root, text="Começar o Scan", command=self.start_scan).pack(pady=10)
+        tk.Button(path_section, text="🟩 Escolher Diretório", command=self.choose_directory).pack(side="left", padx=5)
+        tk.Entry(path_section, textvariable=self.directory_path, state='disabled', width=40).pack(side="left", padx=5)
+        tk.Button(path_section, text="🟦 Começar o Scan", command=self.start_scan).pack(side="left", padx=5)
+
+        # Seção para os resultados
+        result_section = tk.Frame(root, bg="#ececec")
+        result_section.pack(pady=10)
 
         self.results_text = tk.Text(root, height=20, width=80)
         self.results_text.pack(pady=10)
 
-        tk.Button(root, text="Excluir Arquivos", command=self.delete_files).pack(pady=10)
-        tk.Button(root, text="Sair", command=root.destroy).pack(pady=10)  # Novo botão para sair
+        action_buttons = tk.Frame(root, bg="#ececec")
+        action_buttons.pack(pady=10)
+
+        tk.Button(action_buttons, text="🟪 Excluir Arquivos", command=self.delete_files).pack(side="left", padx=5)
+        tk.Button(action_buttons, text="🟫 Sair", command=root.destroy).pack(side="left", padx=5)
 
     def choose_key_file(self):
         key_file = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
