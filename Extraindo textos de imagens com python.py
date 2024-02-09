@@ -20,7 +20,7 @@ from tkinter import Canvas, Entry, Text, Button, PhotoImage
 from pathlib import Path
 import sys
 
-# Obtém o caminho do diretório onde o executável está localizado
+# Obtém o caminho do diretório onde o executável está localizado para que possa usar as imagens de design do app
 EXECUTABLE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
 
 # Define o caminho para o diretório de assets
@@ -484,9 +484,6 @@ for path, data in results.items():
 for path, data in results.items():
     path = os.path.normpath(path)
     print(f"Informações sensíveis encontradas em: {path}")
-    for info in data:
-        tipo, valor, operadora = info[:3] if len(info) > 2 else (info[0], info[1], "")
-        print(f"{tipo}: {valor}")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
