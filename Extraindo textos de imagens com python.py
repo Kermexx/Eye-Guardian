@@ -337,8 +337,8 @@ def extract_sensitive_info_from_image(image_path, results):
 # Função para extrair informações sensíveis de um arquivo TXT
 
 def extract_sensitive_info_from_txt(txt_path, results):
-    with open(txt_path, 'r') as txt_file:
-        text = txt_file.read()
+    with open(txt_path, 'rb') as txt_file:
+        text = txt_file.read().decode('utf-8', errors='ignore')  # Decodificar explicitamente como UTF-8
 
     sensitive_info = []
 
