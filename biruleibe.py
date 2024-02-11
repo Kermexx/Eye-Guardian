@@ -483,7 +483,7 @@ class MeuApp(ctk.CTk):
                                        height=600)
         frame.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
 
-        ctk.CTkButton(master=frame, text="INFO", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(
+        ctk.CTkButton(master=frame, text="INFO", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",command=self.tutorial).grid(
             row=0, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Escanear", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
                       command=self.start_scan).grid(row=1, column=0, padx=30, pady=20, sticky="ew")
@@ -527,6 +527,51 @@ class MeuApp(ctk.CTk):
         image_label = ctk.CTkLabel(master=self, image=image, text="")
         image_label.grid(row=1, column=1, padx=10, pady=10)
 
+    def tutorial(self):
+        popup = tk.Toplevel(self)
+        popup.title("Tutorial")
+        popup.geometry("600x400")
+
+        scrollbar = tk.Scrollbar(popup)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        tutorial_text = tk.Text(popup, wrap=tk.WORD, yscrollcommand=scrollbar.set)
+        tutorial_text.pack(fill=tk.BOTH, expand=True)
+
+        scrollbar.config(command=tutorial_text.yview)
+
+        # Adicione o conteúdo do tutorial aqui
+        tutorial_content = """
+        Este é o tutorial do aplicativo.
+        
+             COMO PEGAR A CHAVE JSON:
+01- Crie uma conta no Google Cloud (cloud.google.com).
+02- Adicione a forma que quer que seja feito os pagamentos.
+03- Crie um novo Projeto.
+04- Após criado, clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Biblioteca".
+05- Pesquise por "Cloud Vision API".
+06- Selecione a que se parece com um olho azul.
+07- Clique em ativar e recarregue a pagina e verifique se a opção "ativar" mudou para "gerenciar".
+08- Clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Credenciais".
+09- Clique em "Criar Credencial" e escolha "Contas de Serviço".
+10- Escolha um nome para a conta de serviço e crie.
+11- Após isso clique na conta de serviço e vá em "chaves".
+12- Clique em "adicionar chave" e crie uma nova chave JSON.
+13- Coloque a chave em algum diretório que você irá se lembrar para quando for usar o aplicativo.
+
+                FUNCIONAMENTO DOS BOTÕES:
+01- INFO > Abre o tutorial.
+02- Escanear > Escaneia o diretório escolhido.
+03- Escolher Diretório > Escolhe o diretório a receber o scan.
+04- Escolher Chave > Seleciona a chave JSON da I.A dentro do diretório que foi salvo. (necessário para Scan de imagens)
+05- Excluir Arquivos > Exclui todos arquivos sensiveis encontrados no diretório escolhido com exceção dos não sensíveis (necessário ter feito o scan antes).
+06- Mover Arquivos > Move todos arquivos sensiveis encontrados para um diretório de sua escolha (necessário ter feito o scan antes).
+07- Adicionar Blacklist > Escolhe 1 ou mais diretórios para ser constantemente monitorado em busca de arquivos sensiveis, caso algum arquivo sensível apareça será aberto um pop-up falando que foi encontrado um arquivo sensível e te mostrará o diretório que ele se encontra.
+08- Esvaziar Blacklist > Remove todos diretórios escolhidos para estar na blacklist.
+09- Salvar > Salvará suas configurações para a próxima inicialização.
+10- Sair > Sairá do aplicativo.
+        """
+        tutorial_text.insert(tk.END, tutorial_content)
 
     def choose_key_file(self):
         key_file = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
