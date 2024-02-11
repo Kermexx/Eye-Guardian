@@ -15,6 +15,10 @@ from pathlib import Path
 import sys
 from customtkinter import *
 from PIL import Image, ImageTk
+import time
+import schedule
+import customtkinter as ctk
+from tkinter import simpledialog
 
 religioes = [
     'Cristianismo',
@@ -448,15 +452,7 @@ for path, data in results.items():
     path = os.path.normpath(path)
     print(f"Informações sensíveis encontradas em: {path}")
 
-
-import os
-import tkinter as tk
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
-
-
-class MyApp(ctk.CTk):
+class MeuApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Eye Guardian")
@@ -472,39 +468,65 @@ class MyApp(ctk.CTk):
 
         # Criar e exibir widgets
         self.create_widgets()
+        # Criar uma lista de blacklist
+        self.blacklist_directories = []
+        self.listbox = None
+
+        # Agendar a execução do escaneamento a cada 5 minutos
+        schedule.every(2).minutes.do(self.scan_blacklist_directories)
+
+        # Iniciar o loop de agendamento
+        self.after(100, self.start_schedule_loop)
 
     def create_widgets(self):
-        frame = ctk.CTkScrollableFrame(master=self, fg_color="transparent", border_color="#962CCA", border_width=2, height=600)
+        frame = ctk.CTkScrollableFrame(master=self, fg_color="transparent", border_color="#962CCA", border_width=2,
+                                       height=600)
         frame.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
 
-        ctk.CTkButton(master=frame, text="INFO", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=0, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escanear", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.start_scan).grid(row=1, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escolher Diretório", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.choose_directory).grid(row=2, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escolher Chave", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.choose_key_file).grid(row=3, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Excluir Arquivos", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.delete_files).grid(row=4, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Mover Arquivos", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.move_files).grid(row=5, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Diretório Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=6, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Relatório Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=7, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=8, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.close_program).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="INFO", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(
+            row=0, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Escanear", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.start_scan).grid(row=1, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Escolher Diretório", corner_radius=32, fg_color="#0f0913",
+                      hover_color="#53DEC9", command=self.choose_directory).grid(row=2, column=0, padx=30, pady=20,
+                                                                                 sticky="ew")
+        ctk.CTkButton(master=frame, text="Escolher Chave", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.choose_key_file).grid(row=3, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Excluir Arquivos", corner_radius=32, fg_color="#0f0913",
+                      hover_color="#53DEC9", command=self.delete_files).grid(row=4, column=0, padx=30, pady=20,
+                                                                             sticky="ew")
+        ctk.CTkButton(master=frame, text="Mover Arquivos", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.move_files).grid(row=5, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Adicionar Blacklist", corner_radius=32, fg_color="#0f0913",
+                      hover_color="#53DEC9", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=30,
+                                                                                           pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Esvaziar Blacklist", corner_radius=32, fg_color="#0f0913",
+                      hover_color="#53DEC9",command=self.clear_blacklist).grid(row=7, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(
+            row=8, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.close_program).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
 
-        #Quadrado Vazio
+
+        # Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, height=500, border_color="#962CCA", border_width=2)
-        quadrado_vazio.grid(row=2, column=1, padx=10, pady=(0,60))
+        quadrado_vazio.grid(row=2, column=1, padx=10, pady=(0, 60))
         quadrado_vazio.grid_rowconfigure(0, weight=1)
         quadrado_vazio.grid_columnconfigure(0, weight=1)
 
-
-        self.output_text = ctk.CTkTextbox(master=quadrado_vazio, wrap=tk.WORD, border_color="#962CCA", border_width=1, height=500, width=900)
+        self.output_text = ctk.CTkTextbox(master=quadrado_vazio, wrap=tk.WORD, border_color="#962CCA", border_width=1,
+                                          height=500, width=900)
         self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=1, column=1, pady=10)
+        ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
+                      hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
         # Carregar e exibir a imagem
         image = Image.open("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\logo_grupo\\logo.png")
         image = ImageTk.PhotoImage(image)
         image_label = ctk.CTkLabel(master=self, image=image, text="")
         image_label.grid(row=1, column=1, padx=10, pady=10)
+
 
     def choose_key_file(self):
         key_file = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
@@ -568,12 +590,64 @@ class MyApp(ctk.CTk):
 
         messagebox.showinfo("Transferência concluída!", "Todos os arquivos foram transferidos com sucesso!")
 
-
     def close_program(self):
         self.destroy()  # Fecha a janela principal do aplicativo
 
+    def clear_blacklist(self):
+        self.blacklist_directories = []
+        messagebox.showinfo("Blacklist Esvaziada", "A lista de blacklist foi esvaziada com sucesso.")
+
+    def choose_blacklist_directory(self):
+        blacklist_directory = filedialog.askdirectory()
+        if blacklist_directory:
+            # Salvar o diretório escolhido na lista de diretórios de lista negra
+            self.blacklist_directories.append(blacklist_directory)
+
+    def start_schedule_loop(self):
+        # Loop para verificar e executar os agendamentos
+        self.scan_blacklist_directories()  # Executar imediatamente antes de entrar no loop
+        self.after(1000, self.start_schedule_loop)  # Agendar a próxima execução
+
+    def scan_blacklist_directories(self):
+        sensitive_files = []
+        for directory in self.blacklist_directories:
+            results = {}
+            process_directory(directory, results)
+            for path, data in results.items():
+                if data:  # Verifica se há informações sensíveis encontradas
+                    path = os.path.normpath(path)
+                    sensitive_files.append(path)
+
+        if sensitive_files:
+            sensitive_message = "\n".join(f"Informações sensíveis encontradas em: {path}" for path in sensitive_files)
+            messagebox.showinfo("Aviso", sensitive_message)
+
+
+def process_directory(directory_path, results):
+    # Percorre a estrutura de diretórios
+    for root, dirs, files in os.walk(directory_path):
+        for filename in files:
+            # Verifica se o arquivo é uma imagem, PDF, TXT ou DOCX e chama a função correspondente
+            if filename.endswith(('.jpg', '.png', '.bmp')):
+                image_path = os.path.join(root, filename)
+                results = extract_sensitive_info_from_image(image_path, results)
+            elif filename.endswith('.pdf'):
+                pdf_path = os.path.join(root, filename)
+                results = extract_sensitive_info_from_pdf(pdf_path, results)
+            elif filename.endswith('.txt'):
+                txt_path = os.path.join(root, filename)
+                results = extract_sensitive_info_from_txt(txt_path, results)
+            elif filename.endswith('.docx'):
+                docx_path = os.path.join(root, filename)
+                results = extract_sensitive_info_from_docx(docx_path, results)
+            elif filename.endswith('.pptx'):
+                pptx_path = os.path.join(root, filename)
+                results = extract_sensitive_info_from_pptx(pptx_path, results)
+            elif filename.endswith('.xlsx'):
+                xlsx_path = os.path.join(root, filename)
+                results = extract_sensitive_info_from_xlsx(xlsx_path, results)
+
 
 if __name__ == "__main__":
-    app = MyApp()
+    app = MeuApp()
     app.mainloop()
-
