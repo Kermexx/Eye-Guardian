@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import fitz#PymuPDF
 from google.cloud import vision
 from docx import Document  # Para lidar com arquivos DOCX
@@ -458,7 +459,7 @@ from PIL import Image, ImageTk
 class MyApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Minha Aplicação")
+        self.title("Eye Guardian")
         self.geometry("1200x700")
 
         # Variáveis
@@ -481,11 +482,11 @@ class MyApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Escolher Diretório", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.choose_directory).grid(row=2, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Escolher Chave", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.choose_key_file).grid(row=3, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Excluir Arquivos", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.delete_files).grid(row=4, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Mover Arquivos", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=5, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Mover Arquivos", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.move_files).grid(row=5, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Diretório Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=6, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Relatório Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=7, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=8, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=9, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.close_program).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
 
         #Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, height=500, border_color="#962CCA", border_width=2)
@@ -551,6 +552,25 @@ class MyApp(ctk.CTk):
                         os.remove(sensitive_file)
 
                 messagebox.showinfo("Concluído", "Todos os arquivos sensíveis foram excluídos com sucesso.")
+
+    def move_files(self):
+        if not self.sensitive_files:
+            messagebox.showwarning("Aviso", "Nenhum arquivo sensível foi encontrado.")
+            return
+
+        destination_directory = filedialog.askdirectory()
+        if destination_directory:
+            for sensitive_file in self.sensitive_files:
+                try:
+                    shutil.move(sensitive_file, destination_directory)
+                except Exception as e:
+                    self.output_text.insert(tk.END, f"Erro ao mover arquivo '{sensitive_file}': {str(e)}\n")
+
+        messagebox.showinfo("Transferência concluída!", "Todos os arquivos foram transferidos com sucesso!")
+
+
+    def close_program(self):
+        self.destroy()  # Fecha a janela principal do aplicativo
 
 
 if __name__ == "__main__":
