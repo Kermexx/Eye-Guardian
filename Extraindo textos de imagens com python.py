@@ -4,6 +4,7 @@
 # Antes de tudo instale no terminal > pip install python-pptx
 # Antes de tudo instale no terminal > pip install openpyxl
 # Antes de tudo instale no terminal > pip install Pillow
+# Antes de tudo instale no terminal > pip install schedule
 import os
 import re
 import shutil
