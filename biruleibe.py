@@ -487,10 +487,15 @@ class MyApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=8, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=9, column=0, padx=30, pady=20, sticky="ew")
 
+        #Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, height=500, border_color="#962CCA", border_width=2)
         quadrado_vazio.grid(row=2, column=1, padx=10, pady=(0,60))
         quadrado_vazio.grid_rowconfigure(0, weight=1)
         quadrado_vazio.grid_columnconfigure(0, weight=1)
+
+
+        self.output_text = ctk.CTkTextbox(master=quadrado_vazio, wrap=tk.WORD, border_color="#962CCA", border_width=1, height=500, width=900)
+        self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
@@ -525,13 +530,13 @@ class MyApp(ctk.CTk):
 
             for path, data in results.items():
                 path = os.path.normpath(path)
-                print(f"Informações sensíveis encontradas em: {path}")
+                self.output_text.insert(tk.END, f"Informações sensíveis encontradas em: {path}\n")
 
                 types_found = set(info[0] for info in data)
                 for info_type in types_found:
-                    print(f"{info_type} encontrado")
+                    self.output_text.insert(tk.END, f"{info_type} encontrado\n")
 
-                print()
+                self.output_text.insert(tk.END, "\n")
 
             self.sensitive_files = sensitive_files
 
