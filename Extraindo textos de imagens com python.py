@@ -470,14 +470,14 @@ class MeuApp(ctk.CTk):
         self.key_path = tk.StringVar()
         self.sensitive_files = []
 
-        # Configuração da aparência
-        ctk.set_appearance_mode("dark")
-
         # Criar e exibir widgets
         self.create_widgets()
         # Criar uma lista de blacklist
         self.blacklist_directories = []
         self.listbox = None
+
+        # Definindo o modo de aparência inicial
+        ctk.set_appearance_mode("dark")
 
         # Agendar a execução do escaneamento a cada 5 minutos
         schedule.every(2).minutes.do(self.scan_blacklist_directories)
@@ -508,11 +508,21 @@ class MeuApp(ctk.CTk):
                       hover_color="#53DEC9", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=30,
                                                                                            pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Esvaziar Blacklist", corner_radius=32, fg_color="#0f0913",
-                      hover_color="#53DEC9",command=self.clear_blacklist).grid(row=7, column=0, padx=30, pady=20, sticky="ew")
+                      hover_color="#53DEC9",command=self.clear_blacklist).grid(row=8, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(
-            row=8, column=0, padx=30, pady=20, sticky="ew")
+            row=9, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
-                      command=self.close_program).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
+                      command=self.close_program).grid(row=10, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Lista Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.show_blacklist).grid(row=7, column=0, padx=30, pady=20, sticky="ew")
+
+        ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
+                      hover_color="#53DEC9").grid(row=1, column=1, pady=10)
+
+        # Carregar e exibir a imagem
+        image = Image.open("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\logo_grupo\\logo.png")
+        image = ImageTk.PhotoImage(image)
+        image_label = ctk.CTkLabel(master=self, image=image, text="")
+        image_label.grid(row=1, column=1, padx=10, pady=10)
 
 
         # Quadrado Vazio
@@ -525,14 +535,35 @@ class MeuApp(ctk.CTk):
                                           height=500, width=900)
         self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
-                      hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
-        # Carregar e exibir a imagem
-        image = Image.open("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\logo_grupo\\logo.png")
-        image = ImageTk.PhotoImage(image)
-        image_label = ctk.CTkLabel(master=self, image=image, text="")
-        image_label.grid(row=1, column=1, padx=10, pady=10)
+    def show_blacklist(self):
+        blacklist_window = tk.Toplevel(self)
+        blacklist_window.title("Lista Blacklist")
+        blacklist_window.geometry("800x600")  # Definindo a geometria da janela
+
+        listbox_frame = tk.Frame(blacklist_window)
+        listbox_frame.pack(fill=tk.BOTH, expand=True)  # Faz o frame expandir para preencher toda a janela
+
+        listbox = tk.Listbox(listbox_frame, selectmode=tk.MULTIPLE)
+        listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)  # Faz a Listbox preencher todo o frame
+
+        for directory in self.blacklist_directories:
+            listbox.insert(tk.END, directory)
+
+        scrollbar = tk.Scrollbar(listbox_frame, orient="vertical", command=listbox.yview)
+        scrollbar.pack(side="right", fill="y")
+        listbox.config(yscrollcommand=scrollbar.set)
+
+        def remove_selected():
+            selected_indices = listbox.curselection()
+            selected_directories = [listbox.get(index) for index in selected_indices]
+            for directory in selected_directories:
+                self.blacklist_directories.remove(directory)
+            messagebox.showinfo("Removido", "Os diretórios selecionados foram removidos da blacklist.")
+            blacklist_window.destroy()
+
+        remove_button = tk.Button(blacklist_window, text="Remover Selecionados", command=remove_selected)
+        remove_button.pack(padx=10, pady=10)
 
     def tutorial(self):
         popup = tk.Toplevel(self)
@@ -703,4 +734,3 @@ def process_directory(directory_path, results):
 if __name__ == "__main__":
     app = MeuApp()
     app.mainloop()
-
