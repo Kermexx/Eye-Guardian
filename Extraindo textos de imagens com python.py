@@ -687,6 +687,9 @@ class MeuApp(ctk.CTk):
     def start_scan(self):
         directory_path = self.directory_path.get()
         if directory_path:
+            # Limpa o texto antigo
+            self.output_text.delete(1.0, tk.END)
+
             results = {}
             process_directory(directory_path, results)
 
@@ -707,7 +710,6 @@ class MeuApp(ctk.CTk):
                 self.output_text.insert(tk.END, "\n")
 
             self.sensitive_files = sensitive_files
-
     def delete_files(self):
         directory_path = self.directory_path.get()
         if directory_path:
