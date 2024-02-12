@@ -27,6 +27,9 @@ import schedule
 import customtkinter as ctk
 from tkinter import simpledialog
 import json
+import base64
+import io
+
 
 religioes = [
     'Cristianismo',
@@ -488,12 +491,6 @@ class MeuApp(ctk.CTk):
         # Iniciar o loop de agendamento
         self.after(100, self.start_schedule_loop)
 
-        # Carregar e exibir a imagem
-        image = Image.open("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\logo_grupo\\logo.png")
-        image = ImageTk.PhotoImage(image)
-        image_label = ctk.CTkLabel(master=self, image=image, text="")
-        image_label.grid(row=1, column=1, padx=10, pady=10)
-
     def create_widgets(self):
         frame = ctk.CTkScrollableFrame(master=self, fg_color="transparent", border_color="#962CCA", border_width=2,
                                        height=600)
@@ -527,8 +524,16 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
+        # String base64 da imagem
+        base64_image = """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"""
+        # Decodificar a string de base64 em uma imagem
+        image_data = base64.b64decode(base64_image)
+        image = Image.open(io.BytesIO(image_data))
+        image = ImageTk.PhotoImage(image)
 
-
+        # Exibir a imagem
+        image_label = ctk.CTkLabel(master=self, image=image, text="")
+        image_label.grid(row=1, column=1, padx=10, pady=10)
         # Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, height=500, border_color="#962CCA", border_width=2)
         quadrado_vazio.grid(row=2, column=1, padx=10, pady=(0, 60))
@@ -593,26 +598,25 @@ class MeuApp(ctk.CTk):
         messagebox.showinfo("Salvo", "As configurações foram salvas com sucesso.")
 
 
-
     def tutorial(self):
         popup = tk.Toplevel(self)
         popup.title("Tutorial")
-        popup.geometry("600x400")
+        popup.geometry("800x600")
 
         scrollbar = tk.Scrollbar(popup)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        tutorial_text = tk.Text(popup, wrap=tk.WORD, yscrollcommand=scrollbar.set)
+        tutorial_text = tk.Text(popup, wrap=tk.WORD, yscrollcommand=scrollbar.set, font=("Arial", 12))
         tutorial_text.pack(fill=tk.BOTH, expand=True)
 
         scrollbar.config(command=tutorial_text.yview)
 
         # Adicione o conteúdo do tutorial aqui
         tutorial_content = """
-        Este é o tutorial do aplicativo.
+        COMO PEGAR A CHAVE JSON:
         
-             COMO PEGAR A CHAVE JSON:
-01- Crie uma conta no Google Cloud (cloud.google.com).
+
+ 01- Crie uma conta no Google Cloud (cloud.google.com).
 
 02- Adicione a forma que quer que seja feito os pagamentos.
 
@@ -638,7 +642,10 @@ class MeuApp(ctk.CTk):
 
 13- Coloque a chave em algum diretório que você irá se lembrar para quando for usar o aplicativo.
 
-                FUNCIONAMENTO DOS BOTÕES:
+        FUNCIONAMENTO DOS BOTÕES:
+        
+        
+
 01- Tutorial > Abre o tutorial (onde você está agora).
 
 02- Escanear > Escaneia o diretório escolhido.
@@ -661,6 +668,8 @@ class MeuApp(ctk.CTk):
 
 11- Sair > Sairá do aplicativo.
         """
+
+        tutorial_text.tag_configure("bold", font=("Arial", 12, "bold"))
         tutorial_text.insert(tk.END, tutorial_content)
 
     def choose_key_file(self):
