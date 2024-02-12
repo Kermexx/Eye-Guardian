@@ -26,6 +26,7 @@ import time
 import schedule
 import customtkinter as ctk
 from tkinter import simpledialog
+import json
 
 religioes = [
     'Cristianismo',
@@ -469,12 +470,14 @@ class MeuApp(ctk.CTk):
         self.directory_path = tk.StringVar()
         self.key_path = tk.StringVar()
         self.sensitive_files = []
+        self.blacklist_directories = []
+
+        # Carregar configurações salvas, se houver
+        self.load_settings()
 
         # Criar e exibir widgets
         self.create_widgets()
-        # Criar uma lista de blacklist
-        self.blacklist_directories = []
-        self.listbox = None
+
 
         # Definindo o modo de aparência inicial
         ctk.set_appearance_mode("dark")
@@ -485,12 +488,18 @@ class MeuApp(ctk.CTk):
         # Iniciar o loop de agendamento
         self.after(100, self.start_schedule_loop)
 
+        # Carregar e exibir a imagem
+        image = Image.open("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\logo_grupo\\logo.png")
+        image = ImageTk.PhotoImage(image)
+        image_label = ctk.CTkLabel(master=self, image=image, text="")
+        image_label.grid(row=1, column=1, padx=10, pady=10)
+
     def create_widgets(self):
         frame = ctk.CTkScrollableFrame(master=self, fg_color="transparent", border_color="#962CCA", border_width=2,
                                        height=600)
         frame.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
 
-        ctk.CTkButton(master=frame, text="INFO", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",command=self.tutorial).grid(
+        ctk.CTkButton(master=frame, text="Tutorial", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",command=self.tutorial).grid(
             row=0, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Escanear", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
                       command=self.start_scan).grid(row=1, column=0, padx=30, pady=20, sticky="ew")
@@ -509,7 +518,7 @@ class MeuApp(ctk.CTk):
                                                                                            pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Esvaziar Blacklist", corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9",command=self.clear_blacklist).grid(row=8, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9").grid(
+        ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.save_settings).grid(
             row=9, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
                       command=self.close_program).grid(row=10, column=0, padx=30, pady=20, sticky="ew")
@@ -518,11 +527,6 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
-        # Carregar e exibir a imagem
-        image = Image.open("C:\\Users\\lucas\\OneDrive\\Área de Trabalho\\logo_grupo\\logo.png")
-        image = ImageTk.PhotoImage(image)
-        image_label = ctk.CTkLabel(master=self, image=image, text="")
-        image_label.grid(row=1, column=1, padx=10, pady=10)
 
 
         # Quadrado Vazio
@@ -560,10 +564,35 @@ class MeuApp(ctk.CTk):
             for directory in selected_directories:
                 self.blacklist_directories.remove(directory)
             messagebox.showinfo("Removido", "Os diretórios selecionados foram removidos da blacklist.")
-            blacklist_window.destroy()
+            self.save_settings()
 
         remove_button = tk.Button(blacklist_window, text="Remover Selecionados", command=remove_selected)
         remove_button.pack(padx=10, pady=10)
+
+    #save
+    def load_settings(self):
+        if os.path.exists("settings.json") and os.path.getsize("settings.json") > 0:
+            with open("settings.json", "r") as f:
+                settings = json.load(f)
+                self.key_path.set(settings.get("key_path", ""))
+                if self.key_path.get():
+                    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.key_path.get()
+                self.blacklist_directories = settings.get("blacklist_directories", [])
+        else:
+            messagebox.showwarning("Aviso", "O arquivo de configuração está vazio ou não existe.")
+
+    def save_settings(self):
+        settings = {
+            "key_path": self.key_path.get(),
+            "blacklist_directories": self.blacklist_directories
+        }
+
+        with open("settings.json", "w") as f:
+            json.dump(settings, f)
+
+        messagebox.showinfo("Salvo", "As configurações foram salvas com sucesso.")
+
+
 
     def tutorial(self):
         popup = tk.Toplevel(self)
@@ -584,30 +613,53 @@ class MeuApp(ctk.CTk):
         
              COMO PEGAR A CHAVE JSON:
 01- Crie uma conta no Google Cloud (cloud.google.com).
+
 02- Adicione a forma que quer que seja feito os pagamentos.
+
 03- Crie um novo Projeto.
+
 04- Após criado, clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Biblioteca".
+
 05- Pesquise por "Cloud Vision API".
+
 06- Selecione a que se parece com um olho azul.
+
 07- Clique em ativar e recarregue a pagina e verifique se a opção "ativar" mudou para "gerenciar".
+
 08- Clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Credenciais".
+
 09- Clique em "Criar Credencial" e escolha "Contas de Serviço".
+
 10- Escolha um nome para a conta de serviço e crie.
+
 11- Após isso clique na conta de serviço e vá em "chaves".
+
 12- Clique em "adicionar chave" e crie uma nova chave JSON.
+
 13- Coloque a chave em algum diretório que você irá se lembrar para quando for usar o aplicativo.
 
                 FUNCIONAMENTO DOS BOTÕES:
-01- INFO > Abre o tutorial.
+01- Tutorial > Abre o tutorial (onde você está agora).
+
 02- Escanear > Escaneia o diretório escolhido.
+
 03- Escolher Diretório > Escolhe o diretório a receber o scan.
+
 04- Escolher Chave > Seleciona a chave JSON da I.A dentro do diretório que foi salvo. (necessário para Scan de imagens)
+
 05- Excluir Arquivos > Exclui todos arquivos sensiveis encontrados no diretório escolhido com exceção dos não sensíveis (necessário ter feito o scan antes).
+
 06- Mover Arquivos > Move todos arquivos sensiveis encontrados para um diretório de sua escolha (necessário ter feito o scan antes).
+
 07- Adicionar Blacklist > Escolhe 1 ou mais diretórios para ser constantemente monitorado em busca de arquivos sensiveis, caso algum arquivo sensível apareça será aberto um pop-up falando que foi encontrado um arquivo sensível e te mostrará o diretório que ele se encontra.
-08- Esvaziar Blacklist > Remove todos diretórios escolhidos para estar na blacklist.
-09- Salvar > Salvará suas configurações para a próxima inicialização.
-10- Sair > Sairá do aplicativo.
+
+08- Lista Blacklist > Mostra a lista de todos diretórios salvos na blacklist, caso queira remover 1 ou mais basta clicar nos desejados e então clicar em "Remover Selecionados".
+
+09- Esvaziar Blacklist > Remove todos diretórios escolhidos para estar na blacklist.
+
+10- Salvar > Salvará suas configurações para a próxima inicialização.
+
+11- Sair > Sairá do aplicativo.
         """
         tutorial_text.insert(tk.END, tutorial_content)
 
@@ -616,6 +668,7 @@ class MeuApp(ctk.CTk):
         if key_file:
             self.key_path.set(key_file)
             os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_file
+            self.save_settings()  # Salvar as configurações sempre que o caminho da chave for definido
 
     def choose_directory(self):
         directory = filedialog.askdirectory()
