@@ -8,13 +8,14 @@
 # Antes de tudo instale no terminal > pip install customtkinter
 import os
 import re
-import shutil
+import shutil #Copia e/ou move os arquivos
 import fitz#PymuPDF
 from google.cloud import vision
 from docx import Document  # Para lidar com arquivos DOCX
-from pptx import Presentation
+from pptx import Presentation #powerpoint
 import openpyxl  # Para lidar com arquivos XLSX
 import tkinter as tk
+#imports de design
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
@@ -23,13 +24,13 @@ from pathlib import Path
 import sys
 from customtkinter import *
 from PIL import Image, ImageTk
-import time
-import schedule
+import time #contador
+import schedule #contador
 import customtkinter as ctk
 from tkinter import simpledialog
-import json
-import base64
-import io
+import json #transforamar o save em um arquivo JSON
+import base64 #para a imagem do design virar base64
+import io #load do save
 
 
 religioes = [
