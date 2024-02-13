@@ -6,8 +6,8 @@
 # Antes de tudo instale no terminal > pip install Pillow
 # Antes de tudo instale no terminal > pip install schedule
 # Antes de tudo instale no terminal > pip install customtkinter
-import os
-import re
+import os #funções para manipular caminhos de arquivos
+import re #ajuda a usar padrões de busca do scan
 import shutil #Copia e/ou move os arquivos
 import fitz#PymuPDF
 from google.cloud import vision
