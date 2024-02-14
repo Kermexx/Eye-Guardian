@@ -6,16 +6,16 @@
 # Antes de tudo instale no terminal > pip install Pillow
 # Antes de tudo instale no terminal > pip install schedule
 # Antes de tudo instale no terminal > pip install customtkinter
-import os #funções para manipular caminhos de arquivos
-import re #ajuda a usar padrões de busca do scan
-import shutil #Copia e/ou move os arquivos
-import fitz#PymuPDF
+import os  # funções para manipular caminhos de arquivos
+import re  # ajuda a usar padrões de busca do scan
+import shutil  # Copia e/ou move os arquivos
+import fitz  # PymuPDF
 from google.cloud import vision
 from docx import Document  # Para lidar com arquivos DOCX
-from pptx import Presentation #powerpoint
+from pptx import Presentation  # powerpoint
 import openpyxl  # Para lidar com arquivos XLSX
 import tkinter as tk
-#imports de design
+# imports de design
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
@@ -24,14 +24,14 @@ from pathlib import Path
 import sys
 from customtkinter import *
 from PIL import Image, ImageTk
-import time #contador
-import schedule #contador
+import time  # contador
+import schedule  # contador
 import customtkinter as ctk
 from tkinter import simpledialog
-import json #transforamar o save em um arquivo JSON
-import base64 #para a imagem do design virar base64
-import io #load do save
-import csv #relatório
+import json  # transforamar o save em um arquivo JSON
+import base64  # para a imagem do design virar base64
+import io  # load do save
+import csv  # relatório
 from datetime import datetime
 
 religioes = [
@@ -72,16 +72,19 @@ cores_etnias = [
     'Outro / Não Declarado',
 ]
 
+
 def extract_info_by_pattern(pattern, text, info_type, results):
     matches = re.findall(pattern, text, flags=re.IGNORECASE)
     if matches:
         results.extend([(info_type, match) for match in matches])
     return results
 
+
 def format_rg(rg):
     # Remove pontos e hífens do RG e adiciona o hífen no formato desejado
     rg_limpo = re.sub(r'[^\d]', '', rg)
     return f'{rg_limpo[:-1]}.{rg_limpo[-1]}'
+
 
 # Modifica a função extract_sensitive_info_from_xlsx para incluir formatação de RG
 def extract_sensitive_info_from_xlsx(xlsx_path, results):
@@ -103,15 +106,14 @@ def extract_sensitive_info_from_xlsx(xlsx_path, results):
                     matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', str(cell_value))
                     matches_email = re.findall(r'\S+@\S+', str(cell_value))
                     matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', str(cell_value))
-                    matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', cell_value)
+                    matches_genero = re.findall(
+                        r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', cell_value)
                     valid_telefones = []
-
 
                     for telefone in matches_telefone:
                         numero_limpo = re.sub(r'[^\d]', '', telefone)
                         if len(numero_limpo) == 11 or len(numero_limpo) == 12:
                             valid_telefones.append(telefone)
-
 
                     for rg in matches_rg:
                         rg_formatado = format_rg(rg)
@@ -125,13 +127,16 @@ def extract_sensitive_info_from_xlsx(xlsx_path, results):
                     sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
                     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
                     # Extrai informações sobre religiões
-                    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', cell_value, 'Religião',sensitive_info)
-                    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', cell_value,'Cor/Etnia', sensitive_info)
+                    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', cell_value,
+                                                             'Religião', sensitive_info)
+                    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', cell_value,
+                                                             'Cor/Etnia', sensitive_info)
     if sensitive_info:
         results[xlsx_path] = results.get(xlsx_path, [])
         results[xlsx_path].extend(sensitive_info)
 
     return results
+
 
 def process_directory_with_xlsx(directory_path, results):
     # Percorre a estrutura de diretórios
@@ -142,10 +147,12 @@ def process_directory_with_xlsx(directory_path, results):
                 xlsx_path = os.path.join(root, filename)
                 results = extract_sensitive_info_from_xlsx(xlsx_path, results)
 
+
 def extract_sensitive_info_from_pptx(pptx_path_or_text, results):
     if os.path.isfile(pptx_path_or_text):  # Verifica se é um caminho de arquivo
         presentation = Presentation(pptx_path_or_text)
-        text = "\n".join([shape.text for slide in presentation.slides for shape in slide.shapes if hasattr(shape, "text")])
+        text = "\n".join(
+            [shape.text for slide in presentation.slides for shape in slide.shapes if hasattr(shape, "text")])
 
     else:
         text = pptx_path_or_text
@@ -181,7 +188,8 @@ def extract_sensitive_info_from_pptx(pptx_path_or_text, results):
     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
     # Extrai informações sobre religiões
     sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião', sensitive_info)
-    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',sensitive_info)
+    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',
+                                             sensitive_info)
 
     # Adiciona as informações sensíveis extraídas ao dicionário de resultados
     if sensitive_info:
@@ -189,6 +197,7 @@ def extract_sensitive_info_from_pptx(pptx_path_or_text, results):
         results[pptx_path_or_text].extend(sensitive_info)
 
     return results
+
 
 # Modifica a função process_directory para incluir arquivos PPTX
 def process_directory_with_pptx(directory_path, results):
@@ -199,6 +208,7 @@ def process_directory_with_pptx(directory_path, results):
             if filename.endswith('.pptx'):
                 pptx_path = os.path.join(root, filename)
                 results = extract_sensitive_info_from_pptx(pptx_path, results)
+
 
 # Função para extrair informações sensíveis de um arquivo PDF
 def extract_sensitive_info_from_pdf(pdf_path, results):
@@ -243,8 +253,10 @@ def extract_sensitive_info_from_pdf(pdf_path, results):
         sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
         sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
         # Extrai informações sobre religiões
-        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião',sensitive_info)
-        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',sensitive_info)
+        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião',
+                                                 sensitive_info)
+        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',
+                                                 sensitive_info)
 
     # Adiciona as informações sensíveis extraídas ao dicionário de resultados
     if sensitive_info:
@@ -252,6 +264,7 @@ def extract_sensitive_info_from_pdf(pdf_path, results):
         results[pdf_path].extend(sensitive_info)
 
     return results
+
 
 # Função para extrair informações sensíveis de uma imagem
 def extract_sensitive_info_from_image(image_path, results):
@@ -304,8 +317,10 @@ def extract_sensitive_info_from_image(image_path, results):
         sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
         sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
         # Extrai informações sobre religiões
-        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião',sensitive_info)
-        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',sensitive_info)
+        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião',
+                                                 sensitive_info)
+        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',
+                                                 sensitive_info)
 
     # Adiciona as informações sensíveis extraídas ao dicionário de resultados
     if sensitive_info:
@@ -345,7 +360,8 @@ def extract_sensitive_info_from_txt(txt_path, results):
     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
     # Extrai informações sobre religiões
     sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião', sensitive_info)
-    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',sensitive_info)
+    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',
+                                             sensitive_info)
 
     # Adiciona as informações sensíveis extraídas ao dicionário de resultados
     if sensitive_info:
@@ -353,6 +369,7 @@ def extract_sensitive_info_from_txt(txt_path, results):
         results[txt_path].extend(sensitive_info)
 
     return results
+
 
 # Função para processar um diretório e seus subdiretórios, incluindo arquivos TXT
 def process_directory_with_txt(directory_path, results):
@@ -363,6 +380,7 @@ def process_directory_with_txt(directory_path, results):
             if filename.endswith('.txt'):
                 txt_path = os.path.join(root, filename)
                 results = extract_sensitive_info_from_txt(txt_path, results)
+
 
 # Função para extrair informações sensíveis de um arquivo DOCX
 def extract_sensitive_info_from_docx(docx_path_or_text, results):
@@ -405,7 +423,8 @@ def extract_sensitive_info_from_docx(docx_path_or_text, results):
     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
     # Extrai informações sobre religiões
     sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião', sensitive_info)
-    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',sensitive_info)
+    sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',
+                                             sensitive_info)
 
     # Adiciona as informações sensíveis extraídas ao dicionário de resultados
     if sensitive_info:
@@ -413,6 +432,7 @@ def extract_sensitive_info_from_docx(docx_path_or_text, results):
         results[docx_path_or_text].extend(sensitive_info)
 
     return results
+
 
 # Função para processar um diretório e seus subdiretórios, incluindo arquivos DOCX
 def process_directory_with_docx(directory_path, results):
@@ -466,6 +486,7 @@ for path, data in results.items():
     path = os.path.normpath(path)
     print(f"Informações sensíveis encontradas em: {path}")
 
+
 class MeuApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -485,7 +506,6 @@ class MeuApp(ctk.CTk):
         # Criar e exibir widgets
         self.create_widgets()
 
-
         # Definindo o modo de aparência inicial
         ctk.set_appearance_mode("dark")
 
@@ -500,7 +520,8 @@ class MeuApp(ctk.CTk):
                                        height=600)
         frame.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
 
-        ctk.CTkButton(master=frame, text="Tutorial", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",command=self.tutorial).grid(
+        ctk.CTkButton(master=frame, text="Tutorial", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.tutorial).grid(
             row=0, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Escanear", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
                       command=self.start_scan).grid(row=1, column=0, padx=30, pady=20, sticky="ew")
@@ -517,12 +538,15 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Adicionar Blacklist", corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=30,
                                                                                            pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.save_settings).grid(
+        ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.save_settings).grid(
             row=10, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
                       command=self.close_program).grid(row=11, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Lista Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.show_blacklist).grid(row=7, column=0, padx=30, pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Relatório", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.open_report).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Lista Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.show_blacklist).grid(row=7, column=0, padx=30, pady=20, sticky="ew")
+        ctk.CTkButton(master=frame, text="Relatório", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
+                      command=self.open_report).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
@@ -545,7 +569,6 @@ class MeuApp(ctk.CTk):
         self.output_text = ctk.CTkTextbox(master=quadrado_vazio, wrap=tk.WORD, border_color="#962CCA", border_width=1,
                                           height=500, width=900)
         self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-
 
     def show_blacklist(self):
         blacklist_window = tk.Toplevel(self)
@@ -582,7 +605,7 @@ class MeuApp(ctk.CTk):
         esvaziar_button = tk.Button(blacklist_window, text="Esvaziar Blacklist", command=clear_blacklist)
         esvaziar_button.pack(padx=10, pady=10)
 
-    #save
+    # save
     def load_settings(self):
         if os.path.exists("settings.json") and os.path.getsize("settings.json") > 0:
             with open("settings.json", "r") as f:
@@ -605,7 +628,6 @@ class MeuApp(ctk.CTk):
 
         messagebox.showinfo("Salvo", "As configurações foram salvas com sucesso.")
 
-
     def tutorial(self):
         popup = tk.Toplevel(self)
         popup.title("Tutorial")
@@ -622,7 +644,7 @@ class MeuApp(ctk.CTk):
         # Adicione o conteúdo do tutorial aqui
         tutorial_content = """
         COMO PEGAR A CHAVE JSON:
-        
+
 
  01- Crie uma conta no Google Cloud (cloud.google.com).
 
@@ -651,8 +673,8 @@ class MeuApp(ctk.CTk):
 13- Coloque a chave em algum diretório que você irá se lembrar para quando for usar o aplicativo.
 
         FUNCIONAMENTO DOS BOTÕES:
-        
-        
+
+
 
 01- Tutorial > Abre o tutorial (onde você está agora).
 
@@ -711,7 +733,6 @@ class MeuApp(ctk.CTk):
         else:
             messagebox.showwarning("Aviso", "O relatório ainda não foi gerado.")
 
-
     def start_scan(self):
         directory_path = self.directory_path.get()
         if directory_path:
@@ -746,6 +767,7 @@ class MeuApp(ctk.CTk):
 
             # Gera o relatório
             self.generate_report()
+
     def delete_files(self):
         directory_path = self.directory_path.get()
         if directory_path:
