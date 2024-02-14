@@ -31,7 +31,8 @@ from tkinter import simpledialog
 import json #transforamar o save em um arquivo JSON
 import base64 #para a imagem do design virar base64
 import io #load do save
-
+import csv #relatório
+from datetime import datetime
 
 religioes = [
     'Cristianismo',
@@ -476,6 +477,7 @@ class MeuApp(ctk.CTk):
         self.key_path = tk.StringVar()
         self.sensitive_files = []
         self.blacklist_directories = []
+        self.scan_reports = []
 
         # Carregar configurações salvas, se houver
         self.load_settings()
@@ -515,14 +517,12 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Adicionar Blacklist", corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=30,
                                                                                            pady=20, sticky="ew")
-        ctk.CTkButton(master=frame, text="Esvaziar Blacklist", corner_radius=32, fg_color="#0f0913",
-                      hover_color="#53DEC9",command=self.clear_blacklist).grid(row=8, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Salvar", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.save_settings).grid(
-            row=9, column=0, padx=30, pady=20, sticky="ew")
+            row=10, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Sair", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9",
-                      command=self.close_program).grid(row=10, column=0, padx=30, pady=20, sticky="ew")
+                      command=self.close_program).grid(row=11, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=frame, text="Lista Blacklist", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.show_blacklist).grid(row=7, column=0, padx=30, pady=20, sticky="ew")
-
+        ctk.CTkButton(master=frame, text="Relatório", corner_radius=32, fg_color="#0f0913", hover_color="#53DEC9", command=self.open_report).grid(row=9, column=0, padx=30, pady=20, sticky="ew")
         ctk.CTkButton(master=self, text="", width=300, height=50, corner_radius=32, fg_color="#0f0913",
                       hover_color="#53DEC9").grid(row=1, column=1, pady=10)
 
@@ -573,8 +573,14 @@ class MeuApp(ctk.CTk):
             messagebox.showinfo("Removido", "Os diretórios selecionados foram removidos da blacklist.")
             self.save_settings()
 
+        def clear_blacklist():
+            self.blacklist_directories = []
+            messagebox.showinfo("Blacklist Esvaziada", "A lista de blacklist foi esvaziada com sucesso.")
+
         remove_button = tk.Button(blacklist_window, text="Remover Selecionados", command=remove_selected)
         remove_button.pack(padx=10, pady=10)
+        esvaziar_button = tk.Button(blacklist_window, text="Esvaziar Blacklist", command=clear_blacklist)
+        esvaziar_button.pack(padx=10, pady=10)
 
     #save
     def load_settings(self):
@@ -686,6 +692,26 @@ class MeuApp(ctk.CTk):
         if directory:
             self.directory_path.set(directory)
 
+    def generate_report(self):
+        # Abre ou cria um arquivo para o relatório
+        with open("scan_report.csv", mode="w", newline="") as report_file:
+            report_writer = csv.writer(report_file)
+
+            # Escreve o cabeçalho do relatório
+            report_writer.writerow(["Data Scan", "Horário", "Diretório", "Ação Realizada"])
+
+            # Escreve os dados de cada escaneamento
+            for scan_data in self.scan_reports:
+                data_scan, horario, diretorio, _, acao_realizada = scan_data
+                report_writer.writerow([data_scan, horario, diretorio, acao_realizada])
+
+    def open_report(self):
+        if os.path.exists("scan_report.csv"):
+            os.system("start scan_report.csv")
+        else:
+            messagebox.showwarning("Aviso", "O relatório ainda não foi gerado.")
+
+
     def start_scan(self):
         directory_path = self.directory_path.get()
         if directory_path:
@@ -712,6 +738,14 @@ class MeuApp(ctk.CTk):
                 self.output_text.insert(tk.END, "\n")
 
             self.sensitive_files = sensitive_files
+
+            # Adiciona os dados do escaneamento a self.scan_reports
+            current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+            for path, data in results.items():
+                self.scan_reports.append([current_time, directory_path, path, data, "Escaneado"])
+
+            # Gera o relatório
+            self.generate_report()
     def delete_files(self):
         directory_path = self.directory_path.get()
         if directory_path:
@@ -741,10 +775,6 @@ class MeuApp(ctk.CTk):
 
     def close_program(self):
         self.destroy()  # Fecha a janela principal do aplicativo
-
-    def clear_blacklist(self):
-        self.blacklist_directories = []
-        messagebox.showinfo("Blacklist Esvaziada", "A lista de blacklist foi esvaziada com sucesso.")
 
     def choose_blacklist_directory(self):
         blacklist_directory = filedialog.askdirectory()
