@@ -33,6 +33,7 @@ import base64  # para a imagem do design virar base64
 import io  # load do save
 import csv  # relatório
 from datetime import datetime
+from openpyxl import Workbook
 
 religioes = [
     'Cristianismo',
@@ -690,9 +691,9 @@ class MeuApp(ctk.CTk):
 
 07- Adicionar Blacklist > Escolhe 1 ou mais diretórios para ser constantemente monitorado em busca de arquivos sensiveis, caso algum arquivo sensível apareça será aberto um pop-up falando que foi encontrado um arquivo sensível e te mostrará o diretório que ele se encontra.
 
-08- Lista Blacklist > Mostra a lista de todos diretórios salvos na blacklist, caso queira remover 1 ou mais basta clicar nos desejados e então clicar em "Remover Selecionados".
+08- Lista Blacklist > Mostra a lista de todos diretórios salvos na blacklist, caso queira remover 1 ou mais basta clicar nos desejados e então clicar em "Remover Selecionados", caso queira esvaziar toda blacklist, clique em "Esvaziar blacklist".
 
-09- Esvaziar Blacklist > Remove todos diretórios escolhidos para estar na blacklist.
+09- Relatório > Mostra um relatório em uma planilha excel contendo informações de escaneamentos anteriores, dentro do relatório contem a data que foi feito o escaneamento, o horário, que tipo de arquivo sensivel foi encontrado e o diretório onde estava, o relatório pode ser usado para auditora ou monitoramento.
 
 10- Salvar > Salvará suas configurações para a próxima inicialização.
 
@@ -720,18 +721,42 @@ class MeuApp(ctk.CTk):
             report_writer = csv.writer(report_file)
 
             # Escreve o cabeçalho do relatório
-            report_writer.writerow(["Data Scan", "Horário", "Diretório", "Ação Realizada"])
+            report_writer.writerow(["Data", "Horário", "Informação encontrada", "Diretório"])
 
             # Escreve os dados de cada escaneamento
             for scan_data in self.scan_reports:
-                data_scan, horario, diretorio, _, acao_realizada = scan_data
-                report_writer.writerow([data_scan, horario, diretorio, acao_realizada])
+                data_scan, _, diretorio, data, _ = scan_data
+                for info_type, info in data:
+                    data = data_scan.split()[0]  # Apenas a data
+                    hora = data_scan.split()[1]  # Apenas a hora
+                    report_writer.writerow([data, hora, info_type, diretorio])
+
+        # Após gerar o relatório CSV, cria o relatório Excel
+        self.create_excel_report("scan_report.csv", "resultado_scan.xlsx")
 
     def open_report(self):
-        if os.path.exists("scan_report.csv"):
-            os.system("start scan_report.csv")
+        if os.path.exists("resultado_scan.xlsx"):
+            os.system("start resultado_scan.xlsx")
         else:
             messagebox.showwarning("Aviso", "O relatório ainda não foi gerado.")
+
+    def create_excel_report(self, csv_file, excel_file):
+        # Abre o arquivo CSV e lê os dados
+        with open(csv_file, 'r') as f:
+            csv_reader = csv.reader(f)
+            data = list(csv_reader)
+
+        # Cria um novo arquivo Excel
+        wb = Workbook()
+        ws = wb.active
+
+        # Copia os dados do CSV para o Excel
+        for row_index, row in enumerate(data):
+            for col_index, value in enumerate(row):
+                ws.cell(row=row_index + 1, column=col_index + 1, value=value)
+
+        # Salva o arquivo Excel
+        wb.save(excel_file)
 
     def start_scan(self):
         directory_path = self.directory_path.get()
