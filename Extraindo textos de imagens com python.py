@@ -104,7 +104,6 @@ def extract_sensitive_info_from_xlsx(xlsx_path, results):
                     # Aplica expressões regulares para encontrar informações sensíveis
                     matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})|\d{8,9}-\d{1,2}', cell_value)
                     matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2}|\d{11})', str(cell_value))
-                    matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', str(cell_value))
                     matches_email = re.findall(r'\S+@\S+', str(cell_value))
                     matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', str(cell_value))
                     matches_genero = re.findall(
@@ -123,7 +122,6 @@ def extract_sensitive_info_from_xlsx(xlsx_path, results):
                             sensitive_info.append(('RG', rg_formatado))
 
                     sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
-                    sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
                     sensitive_info.extend([('Email', email) for email in matches_email])
                     sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
                     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
@@ -163,7 +161,6 @@ def extract_sensitive_info_from_pptx(pptx_path_or_text, results):
     # Aplica expressões regulares para encontrar informações sensíveis
     matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})', text)
     matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2}|\d{11})', text)
-    matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', text)
     matches_email = re.findall(r'\S+@\S+', text)
     matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text)
     matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text)
@@ -183,7 +180,6 @@ def extract_sensitive_info_from_pptx(pptx_path_or_text, results):
 
     # Adiciona informações sensíveis encontradas
     sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
-    sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
     sensitive_info.extend([('Email', email) for email in matches_email])
     sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
@@ -228,7 +224,6 @@ def extract_sensitive_info_from_pdf(pdf_path, results):
         # Aplica expressões regulares para encontrar informações sensíveis
         matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})', text)
         matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2}|\d{11})', text)
-        matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', text)
         matches_email = re.findall(r'\S+@\S+', text)
         matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text)
         matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text)
@@ -249,7 +244,6 @@ def extract_sensitive_info_from_pdf(pdf_path, results):
 
         # Adiciona informações sensíveis encontradas
         sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
-        sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
         sensitive_info.extend([('Email', email) for email in matches_email])
         sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
         sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
@@ -280,11 +274,17 @@ def extract_sensitive_info_from_image(image_path, results):
 
     # Envia a imagem para análise de texto
     response = client.text_detection(image=image)
-
     # Extrai texto identificado na imagem
     texts = response.text_annotations
 
+    response = client.face_detection(image=image)
+    faces = response.face_annotations
+
     sensitive_info = []
+
+    # Verifica se há rostos na imagem
+    if faces:
+        sensitive_info.append(('Rosto', 'Rosto encontrado'))
 
     # Itera sobre os textos identificados
     for text in texts:
@@ -293,7 +293,6 @@ def extract_sensitive_info_from_image(image_path, results):
         # Aplica expressões regulares para encontrar informações sensíveis
         matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})', text)
         matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2})', text)
-        matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', text)
         matches_email = re.findall(r'\S+@\S+', text)
         matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text)
         matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text)
@@ -313,7 +312,6 @@ def extract_sensitive_info_from_image(image_path, results):
 
         # Adiciona informações sensíveis encontradas
         sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
-        sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
         sensitive_info.extend([('Email', email) for email in matches_email])
         sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
         sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
@@ -342,7 +340,6 @@ def extract_sensitive_info_from_txt(txt_path, results):
     # Aplica expressões regulares para encontrar informações sensíveis
     matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-\d{1,2}|\d{8}-\d{1,2}|\d{7,9}-\d{1,2}', text)
     matches_cpf = re.findall(r'\b(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2}|\d{11})\b', text)
-    matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', text)
     matches_email = re.findall(r'\S+@\S+', text)
     matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text)
     matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text)
@@ -355,7 +352,6 @@ def extract_sensitive_info_from_txt(txt_path, results):
 
     # Adiciona informações sensíveis encontradas
     sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
-    sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
     sensitive_info.extend([('Email', email) for email in matches_email])
     sensitive_info.extend([('Telefone', telefone) for telefone in matches_telefone])
     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
@@ -397,7 +393,6 @@ def extract_sensitive_info_from_docx(docx_path_or_text, results):
     # Aplica expressões regulares para encontrar informações sensíveis
     matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})', text)
     matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2}|\d{11})', text)
-    matches_cnpj = re.findall(r'\d{2}.\d{3}.\d{3}/\d{4}-\d{2}', text)
     matches_email = re.findall(r'\S+@\S+', text)
     matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text)
     matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text)
@@ -418,7 +413,6 @@ def extract_sensitive_info_from_docx(docx_path_or_text, results):
 
     # Adiciona informações sensíveis encontradas
     sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
-    sensitive_info.extend([('CNPJ', cnpj) for cnpj in matches_cnpj])
     sensitive_info.extend([('Email', email) for email in matches_email])
     sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
     sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
@@ -486,7 +480,6 @@ for path, data in results.items():
 for path, data in results.items():
     path = os.path.normpath(path)
     print(f"Informações sensíveis encontradas em: {path}")
-
 
 class MeuApp(ctk.CTk):
     def __init__(self):
@@ -607,7 +600,9 @@ class MeuApp(ctk.CTk):
                       command=self.show_blacklist).grid(row=7, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Relatório", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",font=("Times New Roman", 17),
                       command=self.open_report).grid(row=9, column=0, padx=0, pady=10, sticky="ew")
-
+        ctk.CTkButton(master=frame, text="Filtrar", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",
+                      font=("Times New Roman", 17),
+                      command=self.filtrado).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
 
         # Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, border_color="#962CCA", border_width=2)
@@ -618,6 +613,8 @@ class MeuApp(ctk.CTk):
         self.output_text = ctk.CTkTextbox(master=quadrado_vazio, wrap=tk.WORD, border_color="#962CCA", border_width=1,
                                           height=540, width=900)
         self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+
 
     def show_blacklist(self):
         blacklist_window = tk.Toplevel(self)
@@ -812,6 +809,7 @@ class MeuApp(ctk.CTk):
             # Limpa o texto antigo
             self.output_text.delete(1.0, tk.END)
 
+
             results = {}
             process_directory(directory_path, results)
 
@@ -821,13 +819,23 @@ class MeuApp(ctk.CTk):
                 results[path] = list(set(data))
                 sensitive_files.append(path)
 
+                # Chamada para a função de detecção de informações sensíveis
+                results = extract_sensitive_info_from_image(path, results)
+
+                # Verifica se rostos foram detectados e exibe uma mensagem
+                if 'Rosto' in data:
+                    self.output_text.insert(tk.END, f"Rosto detectado em: {path}\n")
+
             for path, data in results.items():
                 path = os.path.normpath(path)
                 self.output_text.insert(tk.END, f"Informações sensíveis encontradas em: {path}\n")
 
                 types_found = set(info[0] for info in data)
                 for info_type in types_found:
-                    self.output_text.insert(tk.END, f"{info_type} encontrado\n")
+                    if info_type == 'Rosto':
+                        self.output_text.insert(tk.END, f"{info_type} encontrado\n")
+                    else:
+                        self.output_text.insert(tk.END, f"{info_type} encontrado\n")
 
                 self.output_text.insert(tk.END, "\n")
 
@@ -840,6 +848,71 @@ class MeuApp(ctk.CTk):
 
             # Gera o relatório
             self.generate_report()
+
+    def filtrado(self):
+        # Cria uma janela modal para entrada de texto
+        root = tk.Tk()
+        root.withdraw()  # Esconde a janela principal
+        tipos_arquivo = simpledialog.askstring("Tipos de arquivo",
+                                               "Digite os tipos de arquivo que deseja filtrar (separados por vírgula) - Opções: CPF, E-mail, Etnia, Gênero, Religião, RG, Telefone, Rosto: ")
+
+        # Se o usuário cancelar a entrada, tipos_arquivo será None
+        if tipos_arquivo is not None:
+            # Remove espaços em branco extras e divide os tipos de arquivo
+            tipos_arquivo = [tipo.strip() for tipo in tipos_arquivo.split(',')]
+
+            # Inicia o scan apenas se pelo menos um tipo de arquivo for especificado
+            if tipos_arquivo:
+                directory_path = self.directory_path.get()
+                if directory_path:
+                    # Limpa o texto antigo
+                    self.output_text.delete(1.0, tk.END)
+
+                    results = {}
+                    process_directory(directory_path, results)
+
+                    sensitive_files = []
+
+                    for path, data in results.items():
+                        results[path] = list(set(data))
+                        sensitive_files.append(path)
+
+                        # Chamada para a função de detecção de informações sensíveis
+                        results = extract_sensitive_info_from_image(path, results)
+
+                        # Verifica se rostos foram detectados e exibe uma mensagem
+                        if 'Rosto' in data:
+                            self.output_text.insert(tk.END, f"Rosto detectado em: {path}\n")
+
+                    # Filtra os resultados para mostrar apenas os diretórios com informações sensíveis especificadas
+                    filtered_directories = []
+                    for path, data in results.items():
+                        tipos_encontrados = [info[0] for info in data if info[0] in tipos_arquivo]
+                        if tipos_encontrados:
+                            filtered_directories.append(path)
+
+                    # Mostra os diretórios filtrados na saída
+                    if filtered_directories:
+                        self.output_text.insert(tk.END, "Diretórios com informações sensíveis filtradas:\n")
+                        for directory in filtered_directories:
+                            self.output_text.insert(tk.END, f"{directory}\n")
+                    else:
+                        self.output_text.insert(tk.END,
+                                                "Nenhum diretório com informações sensíveis filtradas encontrado.\n")
+
+                    self.sensitive_files = sensitive_files
+
+                    # Adiciona os dados do escaneamento a self.scan_reports
+                    current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                    for path, data in results.items():
+                        self.scan_reports.append([current_time, directory_path, path, data, "Escaneado"])
+
+                    # Gera o relatório
+                    self.generate_report()
+            else:
+                print("Nenhum tipo de arquivo especificado para filtrar.")
+        else:
+            print("Entrada cancelada pelo usuário.")
 
     def delete_files(self):
         directory_path = self.directory_path.get()
