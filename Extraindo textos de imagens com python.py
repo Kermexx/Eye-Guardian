@@ -599,10 +599,13 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Lista Blacklist", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",font=("Times New Roman", 17),
                       command=self.show_blacklist).grid(row=7, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Relatório", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",font=("Times New Roman", 17),
-                      command=self.open_report).grid(row=9, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Filtrar", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",
+                      command=self.open_report).grid(row=8, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Escanear tipo info", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",
                       font=("Times New Roman", 17),
-                      command=self.filtrado).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
+                      command=self.filtrado).grid(row=9, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Escanear Info", text_color="black", fg_color="#9370DB",
+                      hover_color="#53DEC9", font=("Times New Roman", 17),
+                      command=self.Escanear_info_especifica).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
 
         # Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, border_color="#962CCA", border_width=2)
@@ -614,8 +617,66 @@ class MeuApp(ctk.CTk):
                                           height=540, width=900)
         self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
+    def Escanear_info_especifica(self):
+        # Cria uma janela modal para entrada de texto
+        root = tk.Tk()
+        root.withdraw()  # Esconde a janela principal
 
+        # Pergunta ao usuário que tipo de informação ele deseja procurar
+        info_to_search = simpledialog.askstring("Busca de Informação",
+                                                "Que tipo de informação deseja procurar?")
 
+        # Se o usuário cancelar a entrada, info_to_search será None
+        if info_to_search is not None:
+            directory_path = self.directory_path.get()
+            if directory_path:
+                # Limpa o texto antigo
+                self.output_text.delete(1.0, tk.END)
+
+                results = {}
+                process_directory(directory_path, results)
+
+                sensitive_files = []
+
+                # Variável para armazenar os diretórios onde a informação foi encontrada
+                directories_with_info = []
+
+                for path, data in results.items():
+                    results[path] = list(set(data))
+                    sensitive_files.append(path)
+
+                    # Chamada para a função de detecção de informações sensíveis
+                    results = extract_sensitive_info_from_image(path, results)
+
+                    # Verifica se rostos foram detectados e exibe uma mensagem
+                    if 'Rosto' in data:
+                        self.output_text.insert(tk.END, f"Rosto detectado em: {path}\n")
+
+                    # Verifica se algum texto contém a informação especificada
+                    for info in data:
+                        if info_to_search in info[1]:  # info[1] contém o texto detectado
+                            directories_with_info.append(path)
+                            break
+
+                # Mostra os diretórios onde a informação foi encontrada
+                if directories_with_info:
+                    self.output_text.insert(tk.END, f"Diretórios com {info_to_search} encontrada:\n")
+                    for directory in directories_with_info:
+                        self.output_text.insert(tk.END, f"{directory}\n")
+                else:
+                    self.output_text.insert(tk.END, f"Nenhum diretório com {info_to_search} encontrada.\n")
+
+                self.sensitive_files = sensitive_files
+
+                # Adiciona os dados do escaneamento a self.scan_reports
+                current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                for path, data in results.items():
+                    self.scan_reports.append([current_time, directory_path, path, data, "Escaneado"])
+
+                # Gera o relatório
+                self.generate_report()
+        else:
+            print("Busca cancelada pelo usuário.")
     def show_blacklist(self):
         blacklist_window = tk.Toplevel(self)
         blacklist_window.title("Lista Blacklist")
@@ -848,6 +909,8 @@ class MeuApp(ctk.CTk):
 
             # Gera o relatório
             self.generate_report()
+
+
 
     def filtrado(self):
         # Cria uma janela modal para entrada de texto
