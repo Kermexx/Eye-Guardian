@@ -481,11 +481,24 @@ for path, data in results.items():
     path = os.path.normpath(path)
     print(f"Informações sensíveis encontradas em: {path}")
 
+
 class MeuApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Eye Guardian")
         self.geometry("1200x700")
+        self.resizable(False, False)
+
+        imagem_base64 = (
+            """iVBORw0KGgoAAAANSUhEUgAABLAAAAK8CAMAAADI7ba8AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS4zIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozQzJGMDFBRkU3MDMxMUVFODNFMkQ5QjU0M0ExOUQwQiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozQzJGMDFCMEU3MDMxMUVFODNFMkQ5QjU0M0ExOUQwQiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjNDMkYwMUFERTcwMzExRUU4M0UyRDlCNTQzQTE5RDBCIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjNDMkYwMUFFRTcwMzExRUU4M0UyRDlCNTQzQTE5RDBCIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+E5WbxQAAAIdQTFRFKSkp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                
+
+            """)
+        self.imagem = tk.PhotoImage(data=imagem_base64)
+
+        # Criar uma label de tela cheia
+        self.tela_cheia = tk.Label(self, image=self.imagem)
+        self.tela_cheia.place(x=0, y=0, relwidth=1, relheight=1)
+        self.tela_cheia.config(image=self.imagem)
 
         # Variáveis
         self.directory_path = tk.StringVar()
@@ -509,27 +522,23 @@ class MeuApp(ctk.CTk):
         # Iniciar o loop de agendamento
         self.after(100, self.start_schedule_loop)
 
-
-
-
     def create_widgets(self):
 
         interrogacao_base64 = """
         iVBORw0KGgoAAAANSUhEUgAAAC8AAAAuCAMAAACPpbA7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS4zIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo4NDlGQjJGMkUxN0IxMUVFOEIzNDg5MzZGNzFENDk4NiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo4NDlGQjJGM0UxN0IxMUVFOEIzNDg5MzZGNzFENDk4NiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjg0OUZCMkYwRTE3QjExRUU4QjM0ODkzNkY3MUQ0OTg2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjg0OUZCMkYxRTE3QjExRUU4QjM0ODkzNkY3MUQ0OTg2Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+et2fAwAAAmRQTFRF+vr6+Pj4/f39AAAA+/v7AAAAAQEBAgICAAAA/Pz8GxsbKioqHBwc9vb2GRkZCQkJlpaWQEBA+fn5n5+fxsbGenp6iYmJjIyMcHBwCgoKeHh4YGBgq6urXFxc5eXlPz8/2dnZvr6+MDAwWlpaKSkpGBgYBwcH9PT0DAwM7+/vAQEBAgIC6+vrAwMDvb29ra2t4+Pj09PT1tbW3d3d6Ojoy8vLzs7OnZ2d7u7um5ubQ0NDqKio4eHhqampcXFx39/f9fX1AQEBLS0t1NTUHx8fIiIiBAQEtbW17OzsoaGhjY2NZWVli4uLWVlZf39/eXl5JiYmY2NjLi4uSUlJv7+/RkZGR0dHSkpKioqKZ2dnBQUFS0tLvLy8EBAQdXV1wMDAT09PoKCgUlJSExMT8fHx0NDQHh4eMjIyDg4ODQ0N9/f37+/vV1dXJycnAAAAODg45ubm0tLS6enp1dXV6urqmZmZh4eH0dHRycnJMzMzysrK5OTkAwMDaWlpu7u78vLy4uLi8/PznJycs7OzsbGxKCgoNDQ0x8fHFBQUo6OjTU1NOzs7Pj4+uLi4OTk5mJiYhoaGc3Nzr6+vBgYGfHx8j4+PiIiI2NjYPT09PDw8s7Oz19fXp6enYmJipaWl3t7eUFBQX19f5+fnzc3Nubm5jo6OZmZmRUVFoqKiNjY2TExM4ODgQkJCVVVV7e3tg4ODe3t7QUFBFhYWFxcXYWFhERERsLCwMTExurq6ISEh3NzcEhISTk5Od3d3bGxsNTU1U1NTkJCQzMzMxcXFXV1dUVFR8PDwrKysfn5+lJSUAAAA////yBmZWwAAAMx0Uk5T//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8AeUA2nwAAAnBJREFUeNrsldVTG1EUxpNMXhoXkhBCSIBAmFkGSYDgdHF3d7fA4B6g7dSou1B3d3e3b/+pbsJCX3bJ9K2d4b7c73znN3Nn7zn3LI/6u8Xb4P8tXuD8ota0Bu381qxNit7snbfVXrRkg15k74vg/AAvfMDCVwJosihPi7vfAMTDDOd6/B1NCCAzTsyOBnQ1nr0nR32iw8nN20uaoPcNtEtXUhmKBkB8MJ6T/xSGnuNRFCWcOj/h30Unp4szMdPIxZ85BdmPTRQVdfPtUfTVRObS3jWCrBtj52PqSL3mMkXxtSJklz6B5AF91NRH0qXhs/KOENww0wWI2wuJokU9hJkcHtUfmQ5TNCtvIJ8p6E0Yl9ru4FGqX4QkRUVRyfN4tY2Vv43WEfcuHL9Pu/GTrqFd9MdYE3aHXmflb6F95E90JAS+7qsX+HxAOSsvx/uYtSBWibs+HrWlGmGsPKBblcLoATJov8CjrcEAB39CwMjRZiIrgrlFaRkHT8JvkZHmcpiYXhb6HEApKz+IYDMjh4vPLTGSv5zlesrKG7Fj+6obvubzU2RyX1ZeFwo/Jvy+EDjMuOMFENWy8s8HIfbv98jPiUHaXI9aVMswMMbKvz4UhppYj8zpRfVKLa72INOfo5/Di9BRcpLuAepKkSTVnZHajCD84rneS6AJj+fdVeXbY+fceNIjFxqmOd9XZ4IFhLJwNtx9Rqct8p0Y2BPB5+RVaXlVoUDVMUXly7ZCgwjouNQiWGc+CFRzkyISJCnX15P0OOlucwq9zKu0vJ8Fyj56XrnSDfmVW73ON2tyXIT6cMW+ijLd8oWN/8X/zv8WYAAK9OXhTVh+wgAAAABJRU5ErkJggg==        """
 
-
-#-----------------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------------------
 
         sair_base64 = """
         iVBORw0KGgoAAAANSUhEUgAAAC8AAAAuCAMAAACPpbA7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS4zIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDowQzZGMjBENUUxN0MxMUVFQjczNUVDRjcyNUI2NDZFQyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDowQzZGMjBENkUxN0MxMUVFQjczNUVDRjcyNUI2NDZFQyI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjBDNkYyMEQzRTE3QzExRUVCNzM1RUNGNzI1QjY0NkVDIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjBDNkYyMEQ0RTE3QzExRUVCNzM1RUNGNzI1QjY0NkVDIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+h3ijewAAARdQTFRFAwMDycnJFhYWAAAAcXFxkJCQ/Pz8ZmZm5OTkAwMD29vbHh4eHx8flpaWjo6OkZGRi4uLOzs70tLSRkZGenp6ubm5bGxsMTExeXl5CgoKhYWF+vr6tLS0+/v78vLy2NjYIyMjpaWlDAwMwMDAtbW1np6e9fX1vr6+iIiIfHx8BAQEs7Oz/f39paWlkpKSAAAAPz8/zMzMioqKrKysHBwce3t7fn5+LCwsysrKGxsb6+vrODg4Pj4+dnZ2l5eX7e3tra2t8PDwCwsLExMTYmJiKioqMDAwEhISFBQUfX19x8fHYGBgjY2NT09PVlZW8/Pz2dnZCQkJt7e3AgIC9/f3ERER7+/vVVVV+fn5oqKiSUlJAAAA////StUKfAAAAF10Uk5T//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8A4a+dkAAAAOlJREFUeNpiiCENMIyqH7LqVXydOGFAigj1AibRcCBGhHrBaE4mGOAjQj1ntB8jDHAQoT46WoQk/0ZHs6DI6fhbhZCinkPXSJ0E9WzGrtzejCSod+CJlmQ3lCXaPY6q4sGB7BZsxKqPUYu0jlZi9yKgXlqGFQL07CTEo6NDXZTxq5cTjkYBkqakqXcWINI9/LwaBtHR3BJCxPo3RjQqmkkzgNjwkQ2y0XI34yI6vrTNoz08uYiPX11LBVsuEtKbPD+vECnpM8I+jI2a+YUzOpyk/EhqfvdxI608EWXnIam8Gi3/h596gAADAA890kW1rojaAAAAAElFTkSuQmCC
         """
 
-#--------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------
 
         save_base64 = """
         iVBORw0KGgoAAAANSUhEUgAAAC8AAAAuCAMAAACPpbA7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS4zIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpFRkNENjcyQ0UxODIxMUVFOTRBQkI2NTg5MUQyRjYwNSIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpFRkNENjcyREUxODIxMUVFOTRBQkI2NTg5MUQyRjYwNSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkVGQ0Q2NzJBRTE4MjExRUU5NEFCQjY1ODkxRDJGNjA1IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkVGQ0Q2NzJCRTE4MjExRUU5NEFCQjY1ODkxRDJGNjA1Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+P6ZW+gAAAL1QTFRF5OTkv7+/j4+PUVFRYGBgcXFxlZWVT09PBQUFmZmZt7e3Hh4e4uLi2NjY39/f4eHhvr6+vb29xsbGTk5OHBwcbGxsubm5k5OT1tbWcHBwq6urwsLCXFxc7+/vjY2NSUlJqKiolJSUkJCQpaWljo6Ou7u7sbGxgICAc3NzdHR0oaGh+/v7sbGxr6+vAAAAExMTJycn0NDQKCgokZGRAAAAFxcX9vb2dnZ2PDw8AgICd3d3BgYGMDAwAAAA////9ryNxQAAAD90Uk5T//////////////////////////////////////////////////////////////////////////////////8AjiZ8FwAAAOxJREFUeNrs1ckOgjAQgGFwRQsIggso7kQFjFvc7bz/Y7lGU9MpctPof2v5DgOZBAmSJf39p3jLJoTYHfZ5xyZdxK/opcHjPF/MyjA4Xy35/nj1hcdZpjSCwuWu+5YvU1q9eZrQ797yJqWTm1cEPnpe7DdriOJ8xS/eM+p12a/EeV6/5g+YD0xDfskwA3wfQt7Kh7hXYdTOM7VHoOJeB7eWY6q5oONe482j4b4ELSfL5LSgJPLDZoapORT5pPPo0O+lmHp90fuqMLbSTNZY9D093jwe7hsSpwbiCbpvfL9VFGSdp///xbf6kwADAACA3CQneTTlAAAAAElFTkSuQmCC        """
 
-# --------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------
         # Decodifique as strings base64 em dados binários
         image_data_sair = base64.b64decode(sair_base64)
         image_data_interrogacao = base64.b64decode(interrogacao_base64)
@@ -545,18 +554,16 @@ class MeuApp(ctk.CTk):
                                    hover_color="#f7f3f2", font=("Times New Roman", 17), command=self.close_program)
         botao_sair.grid(row=3, column=1, padx=10, pady=10, sticky="e")
 
-
         botao_interrogacao = ctk.CTkButton(master=self, image=imagem_botao_interrogacao, text="", text_color="",
                                            fg_color="transparent", hover_color="#f7f3f2", font=("Times New Roman", 17),
                                            command=self.tutorial)
         botao_interrogacao.grid(row=0, column=1, padx=10, pady=10, sticky="e")
 
-
         botao_save = ctk.CTkButton(master=self, image=imagem_botao_save, text="", text_color="", fg_color="transparent",
                                    hover_color="#f7f3f2", font=("Times New Roman", 17), command=self.save_settings)
         botao_save.grid(row=3, column=1, padx=10, pady=10, sticky="w")
 
-#--------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------
         # String base64 da imagem do logo do grupo
         base64_image = """iVBORw0KGgoAAAANSUhEUgAAAC8AAAAuCAMAAACPpbA7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS4zIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpEN0YxMzFBQkUxODUxMUVFQTBERjhGRUJDMjYxOERBNSIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpEN0YxMzFBQ0UxODUxMUVFQTBERjhGRUJDMjYxOERBNSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkQ3RjEzMUE5RTE4NTExRUVBMERGOEZFQkMyNjE4REE1IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkQ3RjEzMUFBRTE4NTExRUVBMERGOEZFQkMyNjE4REE1Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+S3PHGwAAAwBQTFRFAPb1AMPFaf7+U/79APf1AN3dh/38xf79ALu+sdvdg/Lylf/+AMrKANbXMf/+APTxAPn2ANDRAL/DU9na8P//AOPh1f7+AMjJAMLEAOvpANraJP/+4P/+9f//APX0VcTG7P//3v7+xuLjAMHDAMjLAMzOAPv4AMDCAP//ANXWAP//ANbWAPTxAPr5AMXGzf/+Xf/+qv//APb2AOXjAOLhAMfIuP7+AO/tn/n5AODfAM/Q7//+APHtANLSAPbz7/f3AO7sAMvNAM/QAPTy6P//ANbWAMzNAPz5of79pNnb+P//AO3rAO/sQ8LEAOrny/r6AMvMAOfmAOjmjf39AOvqAPn35f7+APr5vv//AOblAMXHmv//ef//Qc3OAOjnAPXz8f//ANHRAMjJAMXHANvbAM7Ph///AN/eAMTGAPz7APn5ANfXAOfjAMHDANbW/v///P//////+///x///0f7+AP//AO7sAPj2AM7PAP79ANXUANDRsfn5pO/6svP7AP38/v/+Rd73AN7eyvHxAPz7APLwf//+AP//q/P7sf39s/79ALu+ANHSmv38APfzAPf0AOTjAObkAPXyAPz6APDuAPr6AMPGcPz83+/xAMTH2O3uSMDEpdXXAPPxq/j8wN/g+P39tvz7+f39lerqANLSANXWAPn4fuvsANPULP372f/+yujoy+fpAMnKVvz7z/PzAM3NAODgdv37f/37ANTUYsXIasrLAPr4APr6APz6AOTiAMfJAPz7AOHg/Pz8Af387f39AOHe/v7+/v39RMPGAPz6AODgANrbANzdAN3bAPLwAPLyAN3anv39TPz79vv7gc7PAP39AMLEAMbIAN3dAPv3AN7cAPn3AOfnU8LEAPn5k+j6+vv8gf38NMHC3e3t6e/wD8DCAO/sdcjKAMnKAMnKAPPxANrb8vLzAPn1APf2ANjZ/f7/7Pj4sff8rv79r///APj2sv39sv7+AL7CAPr3AL7AAPj2AOXki//+AMzNAO3rAPj1AO7slPv8////rBwyFgAAAQB0Uk5T////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AFP3ByUAAAJgSURBVHjaYvhPGmAYVU+WesVV+SSoL0ow85CRJVq9iOKno0eZ2cOIU684Xe0rg7NOPMvXPWZeBNVb9+5geBQyUVR0QtBfnVvMJQTUi7B9N4+zzF7i5NSz9Erkb7s9LgV41Z/9/uiHVLXjpYykjKdOS4+F9K90waO+QMHd3DjPcVr3Pd4rsd1fVBKbfr/qlMWtXoRNZ2JeQO69ObO45JqVHn9JTjQx36GPW73Yn98pAdMect7J524XKbzveykpO0jHALd6dp3IpTO7lRb8L+ZrTxMpeLE1d8le83ovXOplNz06VpF70/5/BFPbT74Y60JP9adSkuGK+djVF0Wo/T3BkyzsX8z8811HsDR3yWJVvby4WzHWDdjUF4btf/n3eZLjjfB2vuLbjfMM2i+efp20JfB75cJFWM33+nz978mkZOEaQ77outp/7QYflgPND/ouHXYIh/unPzpYkSv/Nt9/809uZosDb8DuV9PPxxU+Zs+Mq5K7Vx/+z97eHnO+0H6rUOIx86MJONWXGEmmBOQemb8PGP4KhQ+2XUrKC3zGl48z/BWmn9q1NEDIl3MGl9z6NRe+JVdb/r3Fjif9uGx/ZLLUMbd7NiT9VF/53fdeFl/65Gb5bZK3IYnx8mVG019LrvnZ7QnDm54V7rI8yjmTV13xq2LFc1FJ5z1iRfjzl0Lw1Ul//UTT00Ujf5+6vp+dcP5ddW6ZQPwUG50/Au7vZYnI70Uiivoe4dfXdZUoyOYTV/4UJHiwKcqSUr55yQ5UeZufT0gNSEF+fn4BiCTW/IL8AmDE5ReM1l8Dqx4gwACHbFzwX2V6UgAAAABJRU5ErkJggg==
         """
@@ -568,43 +575,48 @@ class MeuApp(ctk.CTk):
         # Exibir a imagem
         image_label = ctk.CTkLabel(master=self, image=image, text="", height=0)
         image_label.grid(row=3, column=1, padx=0, pady=0, sticky="s")
-#--------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------
 
-
-
-        frame = ctk.CTkScrollableFrame(master=self, fg_color="transparent", border_color="#962CCA", border_width=2,
-                                       height=360)
+        frame = ctk.CTkScrollableFrame(master=self, fg_color="#484444", border_color="#962CCA", border_width=2,
+                                       height=425)
         frame.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
         frame.grid_columnconfigure(0, weight=1)  # Configura a coluna 0 para expandir horizontalmente
 
         botao_escanear = ctk.CTkButton(master=self, text="Escanear", text_color="black",
                                        fg_color="#9370DB", width=820,
-                                       hover_color="#f7f3f2", font=("Times New Roman", 17), command=self.start_scan)
+                                       hover_color="#53DEC9", font=("Times New Roman", 17), command=self.start_scan)
         botao_escanear.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
-
-        ctk.CTkButton(master=frame, text="Escolher Diretório", text_color="black", fg_color="#9370DB",font=("Times New Roman", 17),
-                      hover_color="#53DEC9", command=self.choose_directory).grid(row=2, column=0, padx=0, pady=10,
+        ctk.CTkButton(master=frame, text="Escolher Diretório", text_color="black", fg_color="#53DEC9",
+                      font=("Times New Roman", 17),
+                      hover_color="#9370DB", command=self.choose_directory).grid(row=2, column=0, padx=0, pady=10,
                                                                                  sticky="ew")
-        ctk.CTkButton(master=frame, text="Escolher Chave", text_color="black", fg_color="#9370DB", hover_color="#0f0913",font=("Times New Roman", 17),
+        ctk.CTkButton(master=frame, text="Escolher Chave", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
                       command=self.choose_key_file).grid(row=3, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Excluir Arquivos", text_color="black", fg_color="#9370DB",font=("Times New Roman", 17),
-                      hover_color="#53DEC9", command=self.delete_files).grid(row=4, column=0, padx=0, pady=10,
+        ctk.CTkButton(master=frame, text="Excluir Arquivos", text_color="black", fg_color="#53DEC9",
+                      font=("Times New Roman", 17),
+                      hover_color="#9370DB", command=self.delete_files).grid(row=4, column=0, padx=0, pady=10,
                                                                              sticky="ew")
-        ctk.CTkButton(master=frame, text="Mover Arquivos", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",font=("Times New Roman", 17),
+        ctk.CTkButton(master=frame, text="Mover Arquivos", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
                       command=self.move_files).grid(row=5, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Adicionar Blacklist", text_color="black", fg_color="#9370DB",font=("Times New Roman", 17),
-                      hover_color="#53DEC9", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=0,
+        ctk.CTkButton(master=frame, text="Adicionar Blacklist", text_color="black", fg_color="#53DEC9",
+                      font=("Times New Roman", 17),
+                      hover_color="#9370DB", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=0,
                                                                                            pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Lista Blacklist", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",font=("Times New Roman", 17),
+        ctk.CTkButton(master=frame, text="Lista Blacklist", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
                       command=self.show_blacklist).grid(row=7, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Relatório", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",font=("Times New Roman", 17),
+        ctk.CTkButton(master=frame, text="Relatório", text_color="black", fg_color="#53DEC9", hover_color="#9370DB",
+                      font=("Times New Roman", 17),
                       command=self.open_report).grid(row=8, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escanear tipo info", text_color="black", fg_color="#9370DB", hover_color="#53DEC9",
+        ctk.CTkButton(master=frame, text="Escanear tipo info", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB",
                       font=("Times New Roman", 17),
                       command=self.filtrado).grid(row=9, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escanear Info", text_color="black", fg_color="#9370DB",
-                      hover_color="#53DEC9", font=("Times New Roman", 17),
+        ctk.CTkButton(master=frame, text="Escanear Info", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
                       command=self.Escanear_info_especifica).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
 
         # Quadrado Vazio
@@ -677,6 +689,7 @@ class MeuApp(ctk.CTk):
                 self.generate_report()
         else:
             print("Busca cancelada pelo usuário.")
+
     def show_blacklist(self):
         blacklist_window = tk.Toplevel(self)
         blacklist_window.title("Lista Blacklist")
@@ -870,7 +883,6 @@ class MeuApp(ctk.CTk):
             # Limpa o texto antigo
             self.output_text.delete(1.0, tk.END)
 
-
             results = {}
             process_directory(directory_path, results)
 
@@ -909,8 +921,6 @@ class MeuApp(ctk.CTk):
 
             # Gera o relatório
             self.generate_report()
-
-
 
     def filtrado(self):
         # Cria uma janela modal para entrada de texto
