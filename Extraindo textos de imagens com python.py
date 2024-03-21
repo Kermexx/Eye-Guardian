@@ -692,6 +692,12 @@ class MeuApp(ctk.CTk):
 
                 self.sensitive_files = sensitive_files
 
+                # Aumenta o tamanho da fonte
+                self.output_text.configure(
+                    font=(
+                        "Times New Roman",
+                        20))  # Substitua "Helvetica" pelo nome da fonte desejada e 12 pelo tamanho desejado
+
                 # Adiciona os dados do escaneamento a self.scan_reports
                 current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
                 for path, data in results.items():
@@ -1029,6 +1035,12 @@ class MeuApp(ctk.CTk):
                                                 "Nenhum diretório com informações sensíveis filtradas encontrado.\n")
 
                     self.sensitive_files = sensitive_files
+
+                    # Aumenta o tamanho da fonte
+                    self.output_text.configure(
+                        font=(
+                            "Times New Roman",
+                            20))  # Substitua "Helvetica" pelo nome da fonte desejada e 12 pelo tamanho desejado
 
                     # Adiciona os dados do escaneamento a self.scan_reports
                     current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
