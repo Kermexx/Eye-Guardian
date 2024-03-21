@@ -6,6 +6,10 @@
 # Antes de tudo instale no terminal > pip install Pillow
 # Antes de tudo instale no terminal > pip install schedule
 # Antes de tudo instale no terminal > pip install customtkinter
+# Antes de tudo instale no terminal > pip install pandas
+# Antes de tudo instale no terminal > pip install matplotlib
+
+import threading
 import os  # funções para manipular caminhos de arquivos
 import re  # ajuda a usar padrões de busca do scan
 import shutil  # Copia e/ou move os arquivos
@@ -34,6 +38,10 @@ import io  # load do save
 import csv  # relatório
 from datetime import datetime
 from openpyxl import Workbook
+import pandas as pd
+import matplotlib.pyplot as plt
+
+#--------------------------------------------------------------------------#
 
 religioes = [
     'Cristianismo',
@@ -578,7 +586,7 @@ class MeuApp(ctk.CTk):
         # --------------------------------------------------------------------------------------------------------
 
         frame = ctk.CTkScrollableFrame(master=self, fg_color="#484444", border_color="#962CCA", border_width=2,
-                                       height=425)
+                                       height=485)
         frame.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
         frame.grid_columnconfigure(0, weight=1)  # Configura a coluna 0 para expandir horizontalmente
 
@@ -589,35 +597,37 @@ class MeuApp(ctk.CTk):
 
         ctk.CTkButton(master=frame, text="Escolher Diretório", text_color="black", fg_color="#53DEC9",
                       font=("Times New Roman", 17),
-                      hover_color="#9370DB", command=self.choose_directory).grid(row=2, column=0, padx=0, pady=10,
+                      hover_color="#9370DB", command=self.choose_directory).grid(row=3, column=0, padx=0, pady=10,
                                                                                  sticky="ew")
         ctk.CTkButton(master=frame, text="Escolher Chave", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
-                      command=self.choose_key_file).grid(row=3, column=0, padx=0, pady=10, sticky="ew")
+                      command=self.choose_key_file).grid(row=4, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Excluir Arquivos", text_color="black", fg_color="#53DEC9",
                       font=("Times New Roman", 17),
-                      hover_color="#9370DB", command=self.delete_files).grid(row=4, column=0, padx=0, pady=10,
+                      hover_color="#9370DB", command=self.delete_files).grid(row=5, column=0, padx=0, pady=10,
                                                                              sticky="ew")
         ctk.CTkButton(master=frame, text="Mover Arquivos", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
-                      command=self.move_files).grid(row=5, column=0, padx=0, pady=10, sticky="ew")
+                      command=self.move_files).grid(row=6, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Adicionar Blacklist", text_color="black", fg_color="#53DEC9",
                       font=("Times New Roman", 17),
-                      hover_color="#9370DB", command=self.choose_blacklist_directory).grid(row=6, column=0, padx=0,
+                      hover_color="#9370DB", command=self.choose_blacklist_directory).grid(row=7, column=0, padx=0,
                                                                                            pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Lista Blacklist", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
-                      command=self.show_blacklist).grid(row=7, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Relatório", text_color="black", fg_color="#53DEC9", hover_color="#9370DB",
-                      font=("Times New Roman", 17),
-                      command=self.open_report).grid(row=8, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escanear tipo info", text_color="black", fg_color="#53DEC9",
-                      hover_color="#9370DB",
-                      font=("Times New Roman", 17),
-                      command=self.filtrado).grid(row=9, column=0, padx=0, pady=10, sticky="ew")
-        ctk.CTkButton(master=frame, text="Escanear Info", text_color="black", fg_color="#53DEC9",
+                      command=self.show_blacklist).grid(row=8, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Relatório Excel", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
-                      command=self.Escanear_info_especifica).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
+                      command=self.open_report).grid(row=9, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Relatório em Gráfico", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
+                      command=self.graphic).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Filtrar Info", text_color="black", fg_color="#53DEC9", hover_color="#9370DB",
+                      font=("Times New Roman", 17),
+                      command=self.filtrado).grid(row=1, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Procurar Info", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
+                      command=self.Escanear_info_especifica).grid(row=2, column=0, padx=0, pady=10, sticky="ew")
 
         # Quadrado Vazio
         quadrado_vazio = ctk.CTkFrame(master=self, width=900, border_color="#962CCA", border_width=2)
@@ -638,6 +648,8 @@ class MeuApp(ctk.CTk):
         info_to_search = simpledialog.askstring("Busca de Informação",
                                                 "Que tipo de informação deseja procurar?")
 
+        messagebox.showinfo("Scan em progresso",
+                            "O scan está prestes a ser realizado. Você provavelmente verá que a aplicação congelará até terminar, porém não se preocupe! O scan estará em andamento, seja paciente. (Clique em OK para começar. Caso tenha recusado a escolha, ignore esta mensagem)")
         # Se o usuário cancelar a entrada, info_to_search será None
         if info_to_search is not None:
             directory_path = self.directory_path.get()
@@ -719,6 +731,7 @@ class MeuApp(ctk.CTk):
         def clear_blacklist():
             self.blacklist_directories = []
             messagebox.showinfo("Blacklist Esvaziada", "A lista de blacklist foi esvaziada com sucesso.")
+            blacklist_window.destroy()  # Fechar a janela após esvaziar a blacklist
 
         remove_button = tk.Button(blacklist_window, text="Remover Selecionados", command=remove_selected)
         remove_button.pack(padx=10, pady=10)
@@ -763,7 +776,7 @@ class MeuApp(ctk.CTk):
 
         # Adicione o conteúdo do tutorial aqui
         tutorial_content = """
-        COMO PEGAR A CHAVE JSON:
+        COMO PEGAR A CHAVE JSON (I.A):
 
 
  01- Crie uma conta no Google Cloud (cloud.google.com).
@@ -796,27 +809,30 @@ class MeuApp(ctk.CTk):
 
 
 
-01- Tutorial > Abre o tutorial (onde você está agora).
+01- ❓ > Abre o tutorial (onde você está agora).
 
 02- Escanear > Escaneia o diretório escolhido.
 
-03- Escolher Diretório > Escolhe o diretório a receber o scan.
+03- Filtrar Info > Permite o usuário escolher que tipo de informação ele deseja ver dentre as opções: CPF, Gênero, Religião, RG, Telefone e Rosto (necessário escolher o diretório antes)
 
-04- Escolher Chave > Seleciona a chave JSON da I.A dentro do diretório que foi salvo. (necessário para Scan de imagens)
+04- Procurar Info > Permite o usuário procurar por uma informação especifica dentro do diretório escolhido (necessário escolher o diretório antes)
 
-05- Excluir Arquivos > Exclui todos arquivos sensiveis encontrados no diretório escolhido com exceção dos não sensíveis (necessário ter feito o scan antes).
+05- Escolher Diretório > Escolhe o diretório a receber o scan.
 
-06- Mover Arquivos > Move todos arquivos sensiveis encontrados para um diretório de sua escolha (necessário ter feito o scan antes).
+06- Escolher Chave > Seleciona a chave JSON da I.A dentro do diretório que foi salvo. (necessário para Scan de imagens)
 
-07- Adicionar Blacklist > Escolhe 1 ou mais diretórios para ser constantemente monitorado em busca de arquivos sensiveis, caso algum arquivo sensível apareça será aberto um pop-up falando que foi encontrado um arquivo sensível e te mostrará o diretório que ele se encontra.
+07- Excluir Arquivos > Exclui todos arquivos sensiveis encontrados no diretório escolhido com exceção dos não sensíveis (necessário ter feito o scan antes).
 
-08- Lista Blacklist > Mostra a lista de todos diretórios salvos na blacklist, caso queira remover 1 ou mais basta clicar nos desejados e então clicar em "Remover Selecionados", caso queira esvaziar toda blacklist, clique em "Esvaziar blacklist".
+08- Mover Arquivos > Move todos arquivos sensiveis encontrados para um diretório de sua escolha (necessário ter feito o scan antes).
 
-09- Relatório > Mostra um relatório em uma planilha excel contendo informações de escaneamentos anteriores, dentro do relatório contem a data que foi feito o escaneamento, o horário, que tipo de arquivo sensivel foi encontrado e o diretório onde estava, o relatório pode ser usado para auditora ou monitoramento.
+09- Adicionar Blacklist > Escolhe 1 ou mais diretórios para ser constantemente monitorado em busca de arquivos sensiveis, caso algum arquivo sensível apareça será aberto um pop-up falando que foi encontrado um arquivo sensível e te mostrará o diretório que ele se encontra a cada 5 minutos.
 
-10- Salvar > Salvará suas configurações para a próxima inicialização.
+10- Lista Blacklist > Mostra a lista de todos diretórios salvos na blacklist, caso queira remover um ou mais basta clicar nos desejados e então clicar em "Remover Selecionados", caso queira esvaziar toda blacklist, clique em "Esvaziar blacklist".
 
-11- Sair > Sairá do aplicativo.
+11- Relatório Excel> Mostra um relatório em uma planilha excel contendo informações de escaneamentos anteriores, dentro do relatório contem a data que foi feito o escaneamento, o horário, que tipo de arquivo sensivel foi encontrado e o diretório onde estava.
+
+12- Relatório em Gráfico > Mostra um relatório no formato de pizza contendo uma porcentagem em cada fatia para mostrar quantos % de cada informação foi encontrada.
+
         """
 
         tutorial_text.tag_configure("bold", font=("Arial", 12, "bold"))
@@ -833,10 +849,12 @@ class MeuApp(ctk.CTk):
         directory = filedialog.askdirectory()
         if directory:
             self.directory_path.set(directory)
+            messagebox.showinfo("Concluído", "Diretório escolhido com sucesso.")
 
     def generate_report(self):
         # Abre ou cria um arquivo para o relatório
-        with open("scan_report.csv", mode="w", newline="") as report_file:
+        report_file_path = "scan_report.csv"
+        with open(report_file_path, mode="w", newline="") as report_file:
             report_writer = csv.writer(report_file)
 
             # Escreve o cabeçalho do relatório
@@ -850,8 +868,14 @@ class MeuApp(ctk.CTk):
                     hora = data_scan.split()[1]  # Apenas a hora
                     report_writer.writerow([data, hora, info_type, diretorio])
 
+        # Obtém o diretório atual do arquivo Python em execução
+        current_directory = os.path.dirname(os.path.realpath(__file__))
+        excel_file_path = os.path.join(current_directory, "resultado_scan.xlsx")
+
         # Após gerar o relatório CSV, cria o relatório Excel
-        self.create_excel_report("scan_report.csv", "resultado_scan.xlsx")
+        self.create_excel_report(report_file_path, excel_file_path)
+        # Exclui o arquivo CSV após a criação do arquivo Excel
+        os.remove(report_file_path)
 
     def open_report(self):
         if os.path.exists("resultado_scan.xlsx"):
@@ -877,11 +901,36 @@ class MeuApp(ctk.CTk):
         # Salva o arquivo Excel
         wb.save(excel_file)
 
+    def graphic(self):
+        # Verifica se o arquivo "resultado_scan.xlsx" existe
+        if not os.path.exists("resultado_scan.xlsx"):
+            messagebox.showwarning("Aviso", "O gráfico ainda não foi gerado.")
+            return  # Retorna sem gerar o gráfico se o arquivo não existir
+
+        # Carrega os dados do arquivo Excel
+        x = pd.read_excel("resultado_scan.xlsx")
+
+        # Verifica se há dados para plotar o gráfico
+        if x.empty:
+            messagebox.showwarning("Aviso",
+                                   "O arquivo 'resultado_scan.xlsx' está vazio. O gráfico não pode ser gerado.")
+            return  # Retorna sem gerar o gráfico se o arquivo estiver vazio
+
+        # Conta a ocorrência de cada valor na coluna "Informação encontrada"
+        counts = x["Informação encontrada"].value_counts()
+
+        # Plotar o gráfico de pizza com a contagem de cada categoria
+        plt.pie(counts, labels=counts.index, autopct="%1.2f%%")
+        plt.show()
+
     def start_scan(self):
         directory_path = self.directory_path.get()
         if directory_path:
             # Limpa o texto antigo
             self.output_text.delete(1.0, tk.END)
+
+            messagebox.showinfo("Scan em progresso",
+                                "O scan está prestes a ser realizado. Você provavelmente verá que a aplicação congelará até terminar, porém não se preocupe! O scan estará em andamento, seja paciente. (Clique em OK para começar")
 
             results = {}
             process_directory(directory_path, results)
@@ -914,6 +963,11 @@ class MeuApp(ctk.CTk):
 
             self.sensitive_files = sensitive_files
 
+            # Aumenta o tamanho da fonte
+            self.output_text.configure(
+                font=(
+                "Times New Roman", 20))  # Substitua "Helvetica" pelo nome da fonte desejada e 12 pelo tamanho desejado
+
             # Adiciona os dados do escaneamento a self.scan_reports
             current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
             for path, data in results.items():
@@ -926,13 +980,14 @@ class MeuApp(ctk.CTk):
         # Cria uma janela modal para entrada de texto
         root = tk.Tk()
         root.withdraw()  # Esconde a janela principal
-        tipos_arquivo = simpledialog.askstring("Tipos de arquivo",
-                                               "Digite os tipos de arquivo que deseja filtrar (separados por vírgula) - Opções: CPF, E-mail, Etnia, Gênero, Religião, RG, Telefone, Rosto: ")
 
-        # Se o usuário cancelar a entrada, tipos_arquivo será None
+        tipos_arquivo = simpledialog.askstring("Tipos de arquivo",
+                                               "Digite os tipos de arquivo que deseja filtrar (separados por vírgula) - Opções: CPF, Gênero, Religião, RG, Telefone, Rosto: ")
+        messagebox.showinfo("Scan em progresso",
+                            "O scan está prestes a ser realizado. Você provavelmente verá que a aplicação congelará até terminar, porém não se preocupe! O scan estará em andamento, seja paciente. (Clique em OK para começar. Caso tenha recusado a escolha, ignore esta mensagem)")  # Se o usuário cancelar a entrada, tipos_arquivo será None
         if tipos_arquivo is not None:
             # Remove espaços em branco extras e divide os tipos de arquivo
-            tipos_arquivo = [tipo.strip() for tipo in tipos_arquivo.split(',')]
+            tipos_arquivo = [tipo.strip().lower() for tipo in tipos_arquivo.split(',')]
 
             # Inicia o scan apenas se pelo menos um tipo de arquivo for especificado
             if tipos_arquivo:
@@ -954,13 +1009,13 @@ class MeuApp(ctk.CTk):
                         results = extract_sensitive_info_from_image(path, results)
 
                         # Verifica se rostos foram detectados e exibe uma mensagem
-                        if 'Rosto' in data:
+                        if 'rosto' in [info[0].lower() for info in data]:
                             self.output_text.insert(tk.END, f"Rosto detectado em: {path}\n")
 
                     # Filtra os resultados para mostrar apenas os diretórios com informações sensíveis especificadas
                     filtered_directories = []
                     for path, data in results.items():
-                        tipos_encontrados = [info[0] for info in data if info[0] in tipos_arquivo]
+                        tipos_encontrados = [info[0].lower() for info in data if info[0].lower() in tipos_arquivo]
                         if tipos_encontrados:
                             filtered_directories.append(path)
 
@@ -1022,11 +1077,13 @@ class MeuApp(ctk.CTk):
         if blacklist_directory:
             # Salvar o diretório escolhido na lista de diretórios de lista negra
             self.blacklist_directories.append(blacklist_directory)
+            messagebox.showinfo("Concluído", "Diretório escolhido para a blacklist com sucesso.")
 
     def start_schedule_loop(self):
         # Loop para verificar e executar os agendamentos
         self.scan_blacklist_directories()  # Executar imediatamente antes de entrar no loop
-        self.after(1000, self.start_schedule_loop)  # Agendar a próxima execução
+        # Agendar a próxima execução após 5 minutos (300.000 milissegundos)
+        self.after(300000, self.start_schedule_loop)
 
     def scan_blacklist_directories(self):
         sensitive_files = []
