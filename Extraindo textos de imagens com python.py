@@ -9,6 +9,9 @@
 # Antes de tudo instale no terminal > pip install pandas
 # Antes de tudo instale no terminal > pip install matplotlib
 
+import imaplib #biblioteca para se conectar na caixa de e-mail
+import email #decodificar partes do e-mail
+
 import threading
 import os  # funções para manipular caminhos de arquivos
 import re  # ajuda a usar padrões de busca do scan
@@ -19,6 +22,7 @@ from docx import Document  # Para lidar com arquivos DOCX
 from pptx import Presentation  # powerpoint
 import openpyxl  # Para lidar com arquivos XLSX
 import tkinter as tk
+from tkinter import Tk, Label, Entry, Button, messagebox
 # imports de design
 from tkinter import filedialog
 from tkinter import messagebox
@@ -622,6 +626,9 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Relatório em Gráfico", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
                       command=self.graphic).grid(row=10, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Outlook", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
+                      command=self.informacoes_outlook).grid(row=11, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Filtrar Info", text_color="black", fg_color="#53DEC9", hover_color="#9370DB",
                       font=("Times New Roman", 17),
                       command=self.filtrado).grid(row=1, column=0, padx=0, pady=10, sticky="ew")
@@ -839,6 +846,9 @@ class MeuApp(ctk.CTk):
 
 12- Relatório em Gráfico > Mostra um relatório no formato de pizza contendo uma porcentagem em cada fatia para mostrar quantos % de cada informação foi encontrada.
 
+13- Outlook > Pedirá seu login e senha para acessar o seu Outlook, após dar as informações o app vai ler e baixar todos e-mails para a pasta "Anexos_email" que vai estar dentro do local onde o executável original se encontra. Dentro da pasta "Anexos_email" terá várias sub-pastas com os nomes referentes aos titulos dos e-mails respectivos que foram baixados. Com essa pasta o usuário pode fazer o que quiser, desde scans até mover ou excluir arquivos. Há também uma opção para excluir a pasta "Anexos_email" que vai deletar por completo todos e-mails baixados.
+
+LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!! 
         """
 
         tutorial_text.tag_configure("bold", font=("Arial", 12, "bold"))
@@ -1054,6 +1064,8 @@ class MeuApp(ctk.CTk):
         else:
             print("Entrada cancelada pelo usuário.")
 
+
+
     def delete_files(self):
         directory_path = self.directory_path.get()
         if directory_path:
@@ -1112,6 +1124,111 @@ class MeuApp(ctk.CTk):
             messagebox.showinfo("Aviso", sensitive_message)
 
 
+    def informacoes_outlook(self):
+        def limpar_nome(nome):
+            # Substituir caracteres não permitidos por '_'
+            nome_limpo = re.sub(r'[\\/*?:"<>|]', '_', nome)
+            return nome_limpo
+
+        root = Tk()
+        root.title("Login no Outlook")
+
+        username = ""
+        password = ""
+
+        # Função para lidar com o clique no botão de login
+        def handle_login():
+            nonlocal username, password
+            username = username_entry.get()
+            password = password_entry.get()
+            if username and password:
+                root.destroy()  # Fecha a janela pop-up após a conclusão
+                try:
+                    # Conectamos ao servidor do outlook com IMAP
+                    Objeto_conexao = imaplib.IMAP4_SSL("imap.outlook.com")
+
+                    # Efetuamos o login
+                    Objeto_conexao.login(username, password)
+
+                    # Loopar a caixa de entrada
+                    Objeto_conexao.select(mailbox='inbox', readonly=True)
+                    resposta, idDosEmails = Objeto_conexao.search(None, 'All')
+
+                    for num in idDosEmails[0].split():
+                        resultados, dados = Objeto_conexao.fetch(num, '(RFC822)')
+                        texto_do_email = dados[0][1]
+                        texto_do_email = texto_do_email.decode('utf-8')
+                        texto_do_email = email.message_from_string((texto_do_email))
+
+                        # Limpar o título do e-mail
+                        titulo_email = texto_do_email['Subject']
+                        nome_pasta = limpar_nome(titulo_email)
+
+                        # Criar a pasta para salvar os anexos se ela ainda não existir
+                        pasta_anexos = os.path.join("Anexos_email", nome_pasta)
+                        if not os.path.exists(pasta_anexos):
+                            os.makedirs(pasta_anexos)
+
+                        for part in texto_do_email.walk():
+                            # Se tiver anexo, pegar o nome do anexo
+                            if part.get_content_maintype() == 'multipart':
+                                continue
+                            if part.get('Content-Disposition') is None:
+                                continue
+                            # Pegando o nome do arquivo em anexo
+                            fileName = part.get_filename()
+                            # Salvando o arquivo dentro da pasta "Anexos_email"
+                            caminho_arquivo = os.path.join(pasta_anexos, fileName)
+                            # Escrevendo o binário do anexo no arquivo
+                            with open(caminho_arquivo, 'wb') as arquivo:
+                                arquivo.write(part.get_payload(decode=True))
+                            print(f"Anexo '{fileName}' salvo em '{pasta_anexos}'")
+
+                except Exception as e:
+                    print("Ocorreu um erro:", e)
+
+                finally:
+                    if 'Objeto_conexao' in locals():
+                        # Fecha a conexão com o servidor do Outlook
+                        Objeto_conexao.logout()
+            else:
+                # Se o login ou a senha estiverem em branco, exibe uma mensagem de erro
+                messagebox.showerror("Erro", "Por favor, insira o login e a senha.")
+
+        def handle_delete_folder():
+            try:
+                shutil.rmtree("Anexos_email")  # Excluir a pasta "Anexos_email" e todo o seu conteúdo
+                messagebox.showinfo("Sucesso", "Pasta 'Anexos_email' excluída com sucesso!")
+                root.destroy()  # Fecha a janela após a exclusão da pasta
+            except Exception as e:
+                messagebox.showerror("Erro", f"Ocorreu um erro ao excluir a pasta: {e}")
+
+        def show_success_message():
+            messagebox.showinfo("Sucesso",
+                                f"Pasta 'Anexos_email' criada com sucesso em:\n{os.path.abspath('Anexos_email')}")
+
+        # Labels e campos de entrada para login e senha
+        Label(root, text="Login:").grid(row=0, column=0, padx=5, pady=5)
+        username_entry = Entry(root)
+        username_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        Label(root, text="Senha:").grid(row=1, column=0, padx=5, pady=5)
+        password_entry = Entry(root, show="*")
+        password_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        # Botão de login
+        login_button = Button(root, text="Login", command=lambda: [handle_login(), check_and_show_message()])
+        login_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+
+        # Botão para excluir a pasta "Anexos_email"
+        delete_folder_button = Button(root, text="Excluir pasta Anexos_email", command=handle_delete_folder)
+        delete_folder_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+
+        def check_and_show_message():
+            pasta_anexos = "Anexos_email"
+            if not os.path.exists(pasta_anexos):
+                os.makedirs(pasta_anexos)
+            show_success_message()
 def process_directory(directory_path, results):
     # Percorre a estrutura de diretórios
     for root, dirs, files in os.walk(directory_path):
