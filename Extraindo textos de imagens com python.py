@@ -9,6 +9,7 @@
 # Antes de tudo instale no terminal > pip install pandas
 # Antes de tudo instale no terminal > pip install matplotlib
 
+import io
 import imaplib #biblioteca para se conectar na caixa de e-mail
 import email #decodificar partes do e-mail
 
@@ -505,12 +506,19 @@ class MeuApp(ctk.CTk):
             """iVBORw0KGgoAAAANSUhEUgAABLAAAAK8CAMAAADI7ba8AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMS1jMDAxIDc5LjE0NjI4OTk3NzcsIDIwMjMvMDYvMjUtMjM6NTc6MTQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS4zIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozQzJGMDFBRkU3MDMxMUVFODNFMkQ5QjU0M0ExOUQwQiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozQzJGMDFCMEU3MDMxMUVFODNFMkQ5QjU0M0ExOUQwQiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjNDMkYwMUFERTcwMzExRUU4M0UyRDlCNTQzQTE5RDBCIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjNDMkYwMUFFRTcwMzExRUU4M0UyRDlCNTQzQTE5RDBCIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+E5WbxQAAAIdQTFRFKSkp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                
 
             """)
-        self.imagem = tk.PhotoImage(data=imagem_base64)
+        # Decode the base64 string and create an image object
+        image_data = base64.b64decode(imagem_base64)
+        image = Image.open(io.BytesIO(image_data))
 
-        # Criar uma label de tela cheia
+        # Resize the image using Image.Resampling.LANCZOS
+        resized_image = image.resize((1200, 700), Image.Resampling.LANCZOS)
+
+        # Convert the resized image to a format Tkinter can use
+        self.imagem = ImageTk.PhotoImage(resized_image)
+
+        # Create a full-screen label to display the image
         self.tela_cheia = tk.Label(self, image=self.imagem)
         self.tela_cheia.place(x=0, y=0, relwidth=1, relheight=1)
-        self.tela_cheia.config(image=self.imagem)
 
         # Variáveis
         self.directory_path = tk.StringVar()
@@ -918,25 +926,49 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         wb.save(excel_file)
 
     def graphic(self):
-        # Verifica se o arquivo "resultado_scan.xlsx" existe
         if not os.path.exists("resultado_scan.xlsx"):
-            messagebox.showwarning("Aviso", "O gráfico ainda não foi gerado.")
-            return  # Retorna sem gerar o gráfico se o arquivo não existir
+            messagebox.showwarning("Aviso", "O arquivo 'resultado_scan.xlsx' não existe.")
+            return
 
-        # Carrega os dados do arquivo Excel
-        x = pd.read_excel("resultado_scan.xlsx")
+        # Carregando os dados do arquivo Excel
+        data = pd.read_excel("resultado_scan.xlsx")
 
-        # Verifica se há dados para plotar o gráfico
-        if x.empty:
-            messagebox.showwarning("Aviso",
-                                   "O arquivo 'resultado_scan.xlsx' está vazio. O gráfico não pode ser gerado.")
-            return  # Retorna sem gerar o gráfico se o arquivo estiver vazio
+        if data.empty:
+            messagebox.showwarning("Aviso", "O arquivo 'resultado_scan.xlsx' está vazio.")
+            return
 
-        # Conta a ocorrência de cada valor na coluna "Informação encontrada"
-        counts = x["Informação encontrada"].value_counts()
+        # Contamos as ocorrências de informações sensíveis por diretório
+        directory_counts = data['Diretório'].value_counts()
 
-        # Plotar o gráfico de pizza com a contagem de cada categoria
-        plt.pie(counts, labels=counts.index, autopct="%1.2f%%")
+        # Identificamos o diretório com a maior quantidade de informações sensíveis
+        top_directory = directory_counts.idxmax()
+        top_directory_count = directory_counts.max()
+
+        # Preparamos os dados para o gráfico, selecionando apenas as informações do diretório mais crítico
+        top_info = data[data['Diretório'] == top_directory]['Informação encontrada'].value_counts()
+
+        # Preparamos o segundo conjunto de dados para o total de informações encontradas
+        total_info = data['Informação encontrada'].value_counts()
+
+        # Configuramos a figura e os eixos para os subplots
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
+
+        # Primeiro gráfico de pizza
+        ax1.pie(top_info, labels=top_info.index, autopct='%1.1f%%', startangle=90)
+
+        # Quebramos o título do diretório em linhas se necessário
+        max_length = 50
+        wrapped_directory = '\n'.join(
+            [top_directory[i:i + max_length] for i in range(0, len(top_directory), max_length)])
+        ax1.set_title(f'Diretório com mais informações sensiveis:\n{wrapped_directory}', fontsize=10)
+
+        # Segundo gráfico de pizza
+        ax2.pie(total_info, labels=total_info.index, autopct='%1.1f%%', startangle=90)
+        ax2.set_title('Total de Informações Sensíveis Encontradas', fontsize=10)
+
+        # Ajustamos o layout para evitar sobreposição de elementos
+        plt.tight_layout()
+
         plt.show()
 
     def start_scan(self):
