@@ -1091,86 +1091,85 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
 
     def informacoes_outlook(self):
         def limpar_nome(nome):
-            # Substituir caracteres não permitidos por '_'
             nome_limpo = re.sub(r'[\\/*?:"<>|]', '_', nome)
             return nome_limpo
+
+        def get_body(message):
+            if message.is_multipart():
+                for part in message.walk():
+                    ctype = part.get_content_type()
+                    cdispo = str(part.get('Content-Disposition'))
+
+                    if ctype == 'text/plain' and 'attachment' not in cdispo:
+                        return part.get_payload(decode=True).decode('utf-8')
+                    elif ctype == 'text/html':
+                        return part.get_payload(decode=True).decode('utf-8')
+            else:
+                return message.get_payload(decode=True).decode('utf-8')
 
         root = Tk()
         root.title("Login no Outlook")
 
-        username = ""
-        password = ""
-
         # Função para lidar com o clique no botão de login
         def handle_login():
-            nonlocal username, password
             username = username_entry.get()
             password = password_entry.get()
             if username and password:
-                root.destroy()  # Fecha a janela pop-up após a conclusão
+                root.destroy()
                 try:
-                    # Conectamos ao servidor do outlook com IMAP
                     Objeto_conexao = imaplib.IMAP4_SSL("imap.outlook.com")
-
-                    # Efetuamos o login
                     Objeto_conexao.login(username, password)
-
-                    # Loopar a caixa de entrada
                     Objeto_conexao.select(mailbox='inbox', readonly=True)
                     resposta, idDosEmails = Objeto_conexao.search(None, 'All')
 
                     for num in idDosEmails[0].split():
                         resultados, dados = Objeto_conexao.fetch(num, '(RFC822)')
-                        texto_do_email = dados[0][1]
-                        texto_do_email = texto_do_email.decode('utf-8')
-                        texto_do_email = email.message_from_string((texto_do_email))
+                        texto_do_email = dados[0][1].decode('utf-8')
+                        mensagem_email = email.message_from_string(texto_do_email)
 
-                        # Limpar o título do e-mail
-                        titulo_email = texto_do_email['Subject']
+                        titulo_email = mensagem_email['Subject']
                         nome_pasta = limpar_nome(titulo_email)
-
-                        # Criar a pasta para salvar os anexos se ela ainda não existir
                         pasta_anexos = os.path.join("Anexos_email", nome_pasta)
                         if not os.path.exists(pasta_anexos):
                             os.makedirs(pasta_anexos)
 
-                        for part in texto_do_email.walk():
-                            # Se tiver anexo, pegar o nome do anexo
-                            if part.get_content_maintype() == 'multipart':
+                        corpo_email = get_body(mensagem_email)
+                        with open(os.path.join(pasta_anexos, f"{nome_pasta}_conteudo.txt"), 'w',
+                                  encoding='utf-8') as txt_file:
+                            txt_file.write(corpo_email)
+
+                        for part in mensagem_email.walk():
+                            if part.get_content_maintype() == 'multipart' or part.get('Content-Disposition') is None:
                                 continue
-                            if part.get('Content-Disposition') is None:
-                                continue
-                            # Pegando o nome do arquivo em anexo
                             fileName = part.get_filename()
-                            # Salvando o arquivo dentro da pasta "Anexos_email"
-                            caminho_arquivo = os.path.join(pasta_anexos, fileName)
-                            # Escrevendo o binário do anexo no arquivo
-                            with open(caminho_arquivo, 'wb') as arquivo:
-                                arquivo.write(part.get_payload(decode=True))
-                            print(f"Anexo '{fileName}' salvo em '{pasta_anexos}'")
+                            if fileName:
+                                caminho_arquivo = os.path.join(pasta_anexos, fileName)
+                                with open(caminho_arquivo, 'wb') as arquivo:
+                                    arquivo.write(part.get_payload(decode=True))
+                                print(f"Anexo '{fileName}' salvo em '{pasta_anexos}'")
+
+                    # Mostrar a mensagem de sucesso após a conclusão do download dos e-mails e anexos
+                    show_success_message()
 
                 except Exception as e:
                     print("Ocorreu um erro:", e)
 
                 finally:
                     if 'Objeto_conexao' in locals():
-                        # Fecha a conexão com o servidor do Outlook
                         Objeto_conexao.logout()
             else:
-                # Se o login ou a senha estiverem em branco, exibe uma mensagem de erro
                 messagebox.showerror("Erro", "Por favor, insira o login e a senha.")
 
         def handle_delete_folder():
             try:
-                shutil.rmtree("Anexos_email")  # Excluir a pasta "Anexos_email" e todo o seu conteúdo
+                shutil.rmtree("Anexos_email")
                 messagebox.showinfo("Sucesso", "Pasta 'Anexos_email' excluída com sucesso!")
-                root.destroy()  # Fecha a janela após a exclusão da pasta
+                root.destroy()
             except Exception as e:
                 messagebox.showerror("Erro", f"Ocorreu um erro ao excluir a pasta: {e}")
 
         def show_success_message():
-            messagebox.showinfo("Sucesso",
-                                f"Pasta 'Anexos_email' criada com sucesso em:\n{os.path.abspath('Anexos_email')}")
+            messagebox.showinfo("Sucesso", f"Pasta 'Anexos_email' criada com sucesso em:\n{os.path.abspath('Anexos_email')}")
 
         # Labels e campos de entrada para login e senha
         Label(root, text="Login:").grid(row=0, column=0, padx=5, pady=5)
@@ -1182,18 +1181,19 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         password_entry.grid(row=1, column=1, padx=5, pady=5)
 
         # Botão de login
-        login_button = Button(root, text="Login", command=lambda: [handle_login(), check_and_show_message()])
+        login_button = Button(root, text="Login", command=handle_login)
         login_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
         # Botão para excluir a pasta "Anexos_email"
         delete_folder_button = Button(root, text="Excluir pasta Anexos_email", command=handle_delete_folder)
         delete_folder_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
+        # Verifica se a pasta existe e mostra a mensagem de sucesso
         def check_and_show_message():
             pasta_anexos = "Anexos_email"
             if not os.path.exists(pasta_anexos):
                 os.makedirs(pasta_anexos)
-            show_success_message()
+        show_success_message("E-mails baixados com sucesso!")
 def process_directory(directory_path, results):
     # Percorre a estrutura de diretórios
     for root, dirs, files in os.walk(directory_path):
