@@ -540,9 +540,6 @@ class MeuApp(ctk.CTk):
                       font=("Times New Roman", 17),
                       hover_color="#9370DB", command=self.choose_directory).grid(row=3, column=0, padx=0, pady=10,
                                                                                  sticky="ew")
-        ctk.CTkButton(master=frame, text="Escolher Chave", text_color="black", fg_color="#53DEC9",
-                      hover_color="#9370DB", font=("Times New Roman", 17),
-                      command=self.choose_key_file).grid(row=4, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Excluir Arquivos", text_color="black", fg_color="#53DEC9",
                       font=("Times New Roman", 17),
                       hover_color="#9370DB", command=self.open_delete_window).grid(row=5, column=0, padx=0, pady=10,
@@ -721,34 +718,8 @@ class MeuApp(ctk.CTk):
 
         # Adicione o conteúdo do tutorial aqui
         tutorial_content = """
-        COMO PEGAR A CHAVE JSON (I.A):
 
-
- 01- Crie uma conta no Google Cloud (cloud.google.com).
-
-02- Adicione a forma que quer que seja feito os pagamentos.
-
-03- Crie um novo Projeto.
-
-04- Após criado, clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Biblioteca".
-
-05- Pesquise por "Cloud Vision API".
-
-06- Selecione a que se parece com um olho azul.
-
-07- Clique em ativar e recarregue a pagina e verifique se a opção "ativar" mudou para "gerenciar".
-
-08- Clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Credenciais".
-
-09- Clique em "Criar Credencial" e escolha "Contas de Serviço".
-
-10- Escolha um nome para a conta de serviço e crie.
-
-11- Após isso clique na conta de serviço e vá em "chaves".
-
-12- Clique em "adicionar chave" e crie uma nova chave JSON.
-
-13- Coloque a chave em algum diretório que você irá se lembrar para quando for usar o aplicativo.
+VOCÊ ESTÁ USANDO UMA VERSÃO DO APLICATIVO QUE NÃO POSSUI INTELIGÊNCIA ARTIFICAL, ISSO EMBORA FAÇA OS SCANS DESTE APLICATIVO SEREM MAIS RÁPIDOS, ELE NÃO É CAPAZ DE ANALISAR IMAGENS, CASO QUEIRA ANALISAR IMAGENS RECOMENDO QUE USE A VERSÃO QUE POSSUI INTELIGÊNCIA ARTIFICAL!
 
         FUNCIONAMENTO DOS BOTÕES:
 
@@ -785,13 +756,6 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
 
         tutorial_text.tag_configure("bold", font=("Arial", 12, "bold"))
         tutorial_text.insert(tk.END, tutorial_content)
-
-    def choose_key_file(self):
-        key_file = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
-        if key_file:
-            self.key_path.set(key_file)
-            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_file
-            self.save_settings()  # Salvar as configurações sempre que o caminho da chave for definido
 
     def choose_directory(self):
         directory = filedialog.askdirectory()
