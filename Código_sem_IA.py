@@ -12,7 +12,8 @@
 import textwrap
 import imaplib #biblioteca para se conectar na caixa de e-mail
 import email #decodificar partes do e-mail
-
+from tkinter import Toplevel
+from tkinter import Scrollbar, Listbox
 import threading
 import os  # funções para manipular caminhos de arquivos
 import re  # ajuda a usar padrões de busca do scan
@@ -544,7 +545,7 @@ class MeuApp(ctk.CTk):
                       command=self.choose_key_file).grid(row=4, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Excluir Arquivos", text_color="black", fg_color="#53DEC9",
                       font=("Times New Roman", 17),
-                      hover_color="#9370DB", command=self.delete_files).grid(row=5, column=0, padx=0, pady=10,
+                      hover_color="#9370DB", command=self.open_delete_window).grid(row=5, column=0, padx=0, pady=10,
                                                                              sticky="ew")
         ctk.CTkButton(master=frame, text="Mover Arquivos", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
@@ -1033,6 +1034,14 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
 
 
 
+    def open_delete_window(self):
+        self.delete_window = Toplevel(self.master)
+        self.delete_window.title("Excluir Arquivos")
+
+        tk.Button(self.delete_window, text="Excluir todos arquivos", command=self.delete_files, width=20, height=2).pack()
+
+        tk.Button(self.delete_window, text="Excluir individualmente", command=self.open_individual_delete_window, width=20, height=2).pack()
+
     def delete_files(self):
         directory_path = self.directory_path.get()
         if directory_path:
@@ -1044,7 +1053,32 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
                         os.remove(sensitive_file)
 
                 messagebox.showinfo("Concluído", "Todos os arquivos sensíveis foram excluídos com sucesso.")
+                self.delete_window.destroy()
 
+    def open_individual_delete_window(self):
+        self.individual_delete_window = Toplevel(self.delete_window)
+        self.individual_delete_window.title("Excluir Arquivos Individualmente")
+
+        scrollbar = Scrollbar(self.individual_delete_window)
+        scrollbar.pack(side="right", fill="y")
+
+        self.listbox = Listbox(self.individual_delete_window, selectmode="multiple", yscrollcommand=scrollbar.set)
+        for file in self.sensitive_files:  # self.sensitive_files deve ser a lista dos arquivos
+            self.listbox.insert("end", file)
+        self.listbox.pack(side="left", fill="both", expand=True)
+
+        scrollbar.config(command=self.listbox.yview)
+
+        Button(self.individual_delete_window, text="Remover Selecionados", command=self.remove_selected_files).pack()
+
+    def remove_selected_files(self):
+        selected_indices = self.listbox.curselection()
+        selected_files = [self.listbox.get(i) for i in selected_indices]
+        for file in selected_files:
+            if os.path.isfile(file):
+                os.remove(file)
+        messagebox.showinfo("Concluído", "Os arquivos selecionados foram excluídos com sucesso.")
+        self.individual_delete_window.destroy()
     def move_files(self):
         if not self.sensitive_files:
             messagebox.showwarning("Aviso", "Nenhum arquivo sensível foi encontrado.")
