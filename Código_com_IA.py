@@ -799,9 +799,34 @@ class MeuApp(ctk.CTk):
 
         # Adicione o conteúdo do tutorial aqui
         tutorial_content = """
-VOCÊ ESTÁ USANDO UMA VERSÃO DO APLICATIVO QUE NÃO POSSUI INTELIGÊNCIA ARTIFICAL, ISSO EMBORA FAÇA OS SCANS DESTE APLICATIVO
-MAIS RÁPIDOS, ELE NÃO É CAPAZ DE ANALISAR IMAGENS, CASO QUEIRA ANALISAR IMAGENS RECOMENDO QUE USE A VERSÃO QUE POSSUI INTELIGÊNCIA
-ARTIFICAL!
+COMO PEGAR A CHAVE JSON (I.A):
+
+
+ 01- Crie uma conta no Google Cloud (cloud.google.com).
+
+02- Adicione a forma que quer que seja feito os pagamentos.
+
+03- Crie um novo Projeto.
+
+04- Após criado, clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Biblioteca".
+
+05- Pesquise por "Cloud Vision API".
+
+06- Selecione a que se parece com um olho azul.
+
+07- Clique em ativar e recarregue a pagina e verifique se a opção "ativar" mudou para "gerenciar".
+
+08- Clique nas 3 barrinhas no canto superior esquerdo. Escolha "APIs e serviços" e em seguida "Credenciais".
+
+09- Clique em "Criar Credencial" e escolha "Contas de Serviço".
+
+10- Escolha um nome para a conta de serviço e crie.
+
+11- Após isso clique na conta de serviço e vá em "chaves".
+
+12- Clique em "adicionar chave" e crie uma nova chave JSON.
+
+13- Coloque a chave em algum diretório que você irá se lembrar para quando for usar o aplicativo.
 
 
         FUNCIONAMENTO DOS BOTÕES:
