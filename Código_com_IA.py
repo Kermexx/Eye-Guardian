@@ -631,6 +631,9 @@ class MeuApp(ctk.CTk):
         ctk.CTkButton(master=frame, text="Outlook", text_color="black", fg_color="#53DEC9",
                       hover_color="#9370DB", font=("Times New Roman", 17),
                       command=self.informacoes_outlook).grid(row=11, column=0, padx=0, pady=10, sticky="ew")
+        ctk.CTkButton(master=frame, text="Sobre", text_color="black", fg_color="#53DEC9",
+                      hover_color="#9370DB", font=("Times New Roman", 17),
+                      command=self.sobre).grid(row=12, column=0, padx=0, pady=10, sticky="ew")
         ctk.CTkButton(master=frame, text="Filtrar Info", text_color="black", fg_color="#53DEC9", hover_color="#9370DB",
                       font=("Times New Roman", 17),
                       command=self.filtrado).grid(row=1, column=0, padx=0, pady=10, sticky="ew")
@@ -649,6 +652,11 @@ class MeuApp(ctk.CTk):
         self.output_text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         messagebox.showinfo("DICA",
                             "Clique no botão de interrogação no topo do aplicativo para se ter mais informações!")
+
+    def sobre(self):
+        messagebox.showinfo("Créditos",
+                            "Aplicativo criado por Lucas Portugal. 2024 - v.5.0> https://www.linkedin.com/in/lucas-portugal-/")
+
     def Escanear_info_especifica(self):
         # Cria uma janela modal para entrada de texto
         root = tk.Tk()
