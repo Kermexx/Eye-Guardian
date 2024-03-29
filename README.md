@@ -16,10 +16,10 @@ pip install PyMuPDF google-cloud-vision python-docx python-pptx openpyxl Pillow 
 Após instalar as bibliotecas necessárias, você pode rodar a aplicação executando o script Python principal:
 
 ```bash
-python app.py
+python Código_com_IA.py
 ```
 
-Substitua `app.py` pelo nome do seu script Python.
+Substitua `Código_com_IA.py` por 'Código_sem_IA.py' caso prefira usar o app sem a Inteligência Artificial.
 
 ## Funcionalidades
 
