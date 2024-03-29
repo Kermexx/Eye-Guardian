@@ -286,54 +286,41 @@ def extract_sensitive_info_from_image(image_path, results):
 
     image = vision.Image(content=content)
 
-    # Envia a imagem para análise de texto
-    response = client.text_detection(image=image)
-    # Extrai texto identificado na imagem
-    texts = response.text_annotations
+    # Primeiro, realiza a detecção de rosto, mas não adiciona ainda à lista de informações sensíveis
+    face_response = client.face_detection(image=image)
+    faces_detected = len(face_response.face_annotations) > 0
 
-    response = client.face_detection(image=image)
-    faces = response.face_annotations
+    # Realiza a detecção de texto
+    text_response = client.text_detection(image=image)
+    texts = text_response.text_annotations
 
     sensitive_info = []
 
-    # Verifica se há rostos na imagem
-    if faces:
-        sensitive_info.append(('Rosto', 'Rosto encontrado'))
-
-    # Itera sobre os textos identificados
+    # Itera sobre os textos identificados para encontrar informações sensíveis
     for text in texts:
-        text = text.description
+        text_content = text.description
 
         # Aplica expressões regulares para encontrar informações sensíveis
-        matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})', text)
-        matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2})', text)
-        matches_email = re.findall(r'\S+@\S+', text)
-        matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text)
-        matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text)
-        valid_telefones = []
-
-        # Filtra e formata números de telefone válidos
-        for telefone in matches_telefone:
-            numero_limpo = re.sub(r'[^\d]', '', telefone)
-            if len(numero_limpo) == 11 or len(numero_limpo) == 12:
-                valid_telefones.append(telefone)
+        matches_rg = re.findall(r'\d{2}\.\d{3}\.\d{3}-(?:\d{1,2})', text_content)
+        matches_cpf = re.findall(r'(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{9}/\d{2})', text_content)
+        matches_email = re.findall(r'\S+@\S+', text_content)
+        matches_telefone = re.findall(r'\(\d{2}\)\d{5}-\d{4}|\(\d{2}\)\d{4,5}-\d{4}', text_content)
+        matches_genero = re.findall(r'\b(Masculino|masculino|M|Homem|homem|Feminino|feminino|Mulher|mulher|F)\b', text_content)
 
         # Verifica se um RG não está contido em um CPF e adiciona à lista de informações sensíveis
         for rg in matches_rg:
-            rg_in_cpf = any(rg in cpf for cpf in matches_cpf)
-            if not rg_in_cpf:
+            if not any(rg in cpf for cpf in matches_cpf):
                 sensitive_info.append(('RG', rg))
 
         # Adiciona informações sensíveis encontradas
         sensitive_info.extend([('CPF', cpf) for cpf in matches_cpf])
         sensitive_info.extend([('Email', email) for email in matches_email])
-        sensitive_info.extend([('Telefone', telefone) for telefone in valid_telefones])
+        sensitive_info.extend([('Telefone', telefone) for telefone in matches_telefone])
         sensitive_info.extend([('Gênero', genero) for genero in matches_genero])
-        # Extrai informações sobre religiões
-        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(religioes) + r'\b', text, 'Religião',
-                                                 sensitive_info)
-        sensitive_info = extract_info_by_pattern(r'\b' + r'\b|\b'.join(cores_etnias) + r'\b', text, 'Cor/Etnia',
-                                                 sensitive_info)
+
+    # Se um rosto e outras informações sensíveis foram detectados, adiciona "Rosto" à lista
+    if faces_detected and sensitive_info:
+        sensitive_info.insert(0, ('Rosto', 'Rosto encontrado'))
 
     # Adiciona as informações sensíveis extraídas ao dicionário de resultados
     if sensitive_info:
@@ -344,7 +331,6 @@ def extract_sensitive_info_from_image(image_path, results):
 
 
 # Função para extrair informações sensíveis de um arquivo TXT
-
 def extract_sensitive_info_from_txt(txt_path, results):
     with open(txt_path, 'rb') as txt_file:
         text = txt_file.read().decode('utf-8', errors='ignore')  # Decodificar explicitamente como UTF-8
