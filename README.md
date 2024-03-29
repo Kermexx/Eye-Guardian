@@ -43,14 +43,3 @@ Substitua `Código_com_IA.py` por 'Código_sem_IA.py' caso prefira usar o app se
 
 Você pode modificar os parâmetros de varredura e os tipos de informações sensíveis que a aplicação procura ajustando o código-fonte.
 
-## Contribuindo
-
-Contribuições para o projeto Eye Guardian são bem-vindas. Sinta-se à vontade para fazer um fork do repositório, realizar suas mudanças e submeter um pull request.
-
-## Licença
-
-Especifique a licença sob a qual seu projeto é liberado.
-
-## Suporte
-
-Se você encontrar quaisquer problemas ou tiver sugestões de melhorias, por favor abra uma issue no repositório GitHub.
