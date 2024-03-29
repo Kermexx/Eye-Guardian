@@ -655,7 +655,7 @@ class MeuApp(ctk.CTk):
 
     def sobre(self):
         messagebox.showinfo("Créditos",
-                            "Aplicativo criado por Lucas Portugal. 2024 - v.5.0> https://www.linkedin.com/in/lucas-portugal-/")
+                            "Aplicação desenvolvida por Lucas Portugal. 2024 - v.5.0> https://www.linkedin.com/in/lucas-portugal-/")
 
     def Escanear_info_especifica(self):
         # Cria uma janela modal para entrada de texto
