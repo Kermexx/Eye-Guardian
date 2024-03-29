@@ -971,7 +971,7 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         # Gráfico geral de informações sensíveis encontradas
         total_info_latest = latest_data['Informação encontrada'].value_counts()
         wrapped_labels_total_info = wrap_labels(total_info_latest.index)
-        ax1 = fig.add_subplot(2, 2, 2)
+        ax1 = fig.add_subplot(2, 2, 1)
         ax1.pie(total_info_latest, labels=wrapped_labels_total_info, autopct='%1.1f%%', startangle=90)
         ax1.set_title('Total de Informações Sensíveis Encontradas - (Todos diretórios)', fontsize=10, fontweight='bold')
 
@@ -981,7 +981,7 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         pie_data = pd.concat([directory_percents, pd.Series([other_percent], index=['Outros'])])
         wrapped_labels_pie_data = wrap_labels(pie_labels)
 
-        ax_total_comparison = fig.add_subplot(2, 2, 1)
+        ax_total_comparison = fig.add_subplot(2, 2, 2)
         ax_total_comparison.pie(pie_data, labels=wrapped_labels_pie_data, autopct='%1.1f%%', startangle=90,
                                 labeldistance=1.3)
         ax_total_comparison.set_title('TOP 3 Diretórios mais sensíveis', fontsize=10, fontweight='bold')
