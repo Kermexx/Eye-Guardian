@@ -838,7 +838,7 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         data['Data'] = pd.to_datetime(data['Data'].astype(str) + ' ' + data['Horário'].astype(str),
                                       format='%d-%m-%Y %H:%M:%S', dayfirst=True)
 
-        # Ordena os dados pela coluna 'Data' do mais recente para o mais antigo
+        # Ordena os dados pela coluna 'Data'
         data.sort_values(by='Data', ascending=False, inplace=True)
 
         # Seleciona as linhas com a data mais recente
@@ -848,7 +848,7 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         # Atualiza o campo 'Diretório' para refletir o caminho da pasta, não do arquivo
         latest_data['Diretório'] = latest_data['Diretório'].apply(lambda x: str(Path(x).parent))
 
-        # Preparando o conjunto de dados com a contagem de informações por diretório
+        # Contagem de informações por diretório
         directory_info_counts = latest_data.groupby('Diretório')['Informação encontrada'].count().sort_values(
             ascending=False)
         top_directories = directory_info_counts.head(3)
@@ -856,43 +856,48 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
         directory_percents = (top_directories / total_info) * 100
         other_percent = 100 - directory_percents.sum()
 
-        # Definindo o tamanho da figura
+        # Tamanho da figura
         desired_width_px = 1200
         desired_height_px = 700
         dpi = plt.rcParams.get('figure.dpi')
         figsize_inches = (desired_width_px / dpi, desired_height_px / dpi)
         fig = plt.figure(figsize=figsize_inches, dpi=dpi)
 
-        # Função para quebrar as linhas de texto para as legendas
+        # Função para quebrar texto nas legendas
         def wrap_labels(labels, width=30):
             return ['\n'.join(textwrap.wrap(label, width=width)) for label in labels]
 
-        # Gráfico geral de informações sensíveis encontradas
+        # Gráfico geral de informações sensíveis
         total_info_latest = latest_data['Informação encontrada'].value_counts()
         wrapped_labels_total_info = wrap_labels(total_info_latest.index)
         ax1 = fig.add_subplot(2, 2, 2)
         ax1.pie(total_info_latest, labels=wrapped_labels_total_info, autopct='%1.1f%%', startangle=90)
-        ax1.set_title('Total de Informações Sensíveis Encontradas - (Todos diretórios)', fontsize=10, fontweight='bold')
+        ax1.set_title(
+            f'Total de Informações Sensíveis Encontradas - Todos diretórios (Volume: {total_info_latest.sum()} )',
+            fontsize=10, fontweight='bold')
 
-        # Gráfico dos TOP 3 diretórios
-        pie_labels = ['TOP 1 - ' + top_directories.index[0], 'TOP 2 - ' + top_directories.index[1],
-                      'TOP 3 - ' + top_directories.index[2], 'Outros']
-        pie_data = pd.concat([directory_percents, pd.Series([other_percent], index=['Outros'])])
+        # Preparação dos dados e rótulos para o gráfico de pizza dos TOP diretórios
+        pie_labels = [f'TOP {i + 1} - {dir}' for i, dir in enumerate(top_directories.index)]
+        if len(pie_labels) < 3:
+            pie_labels.append('Outros')
+            directory_percents['Outros'] = other_percent
+
+        pie_data = directory_percents
         wrapped_labels_pie_data = wrap_labels(pie_labels)
 
         ax_total_comparison = fig.add_subplot(2, 2, 1)
         ax_total_comparison.pie(pie_data, labels=wrapped_labels_pie_data, autopct='%1.1f%%', startangle=90,
                                 labeldistance=1.3)
-        ax_total_comparison.set_title('TOP 3 Diretórios mais sensíveis', fontsize=10, fontweight='bold')
+        ax_total_comparison.set_title('TOP Diretórios mais sensíveis', fontsize=10, fontweight='bold')
 
-        # Gráficos detalhados para cada um dos TOP 3 diretórios
-        for i, directory in enumerate(top_directories.index, start=1):
+        # Gráficos detalhados para cada TOP diretório
+        for i, directory in enumerate(top_directories.index):
             specific_data = latest_data[latest_data['Diretório'] == directory]
-            info = specific_data['Informação encontrada'].value_counts()
-            wrapped_labels_info = wrap_labels(info.index)
-            ax = fig.add_subplot(2, 3, i + 3)
-            ax.pie(info, labels=wrapped_labels_info, autopct='%1.1f%%', startangle=90)
-            ax.set_title(f'TOP {i} - Diretório Sensível', fontsize=10, fontweight='bold')
+            info_counts = specific_data['Informação encontrada'].value_counts()
+            wrapped_labels_info = wrap_labels(info_counts.index)
+            ax = fig.add_subplot(2, 3, i + 4)
+            ax.pie(info_counts, labels=wrapped_labels_info, autopct='%1.1f%%', startangle=90)
+            ax.set_title(f'TOP {i + 1} (Volume: {info_counts.sum()})', fontsize=10, fontweight='bold')
 
         plt.tight_layout()
         plt.show()
