@@ -853,8 +853,8 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
             ascending=False)
         top_directories = directory_info_counts.head(3)
         total_info = directory_info_counts.sum()
-        directory_percents = (top_directories / total_info) * 100
-        other_percent = 100 - directory_percents.sum()
+        top_directory_percents = (top_directories / total_info) * 100
+        other_percent = 100 - top_directory_percents.sum()
 
         # Tamanho da figura
         desired_width_px = 1200
@@ -877,18 +877,14 @@ LEMBRE-SE DE SEMPRE SALVAR AS CONFIGURAÇÕES!!!
             fontsize=10, fontweight='bold')
 
         # Preparação dos dados e rótulos para o gráfico de pizza dos TOP diretórios
-        pie_labels = [f'TOP {i + 1} - {dir}' for i, dir in enumerate(top_directories.index)]
-        if len(pie_labels) < 3:
-            pie_labels.append('Outros')
-            directory_percents['Outros'] = other_percent
-
-        pie_data = directory_percents
+        pie_labels = [f'TOP {i + 1} - {dir}' for i, dir in enumerate(top_directories.index)] + ['Outros']
+        pie_data = list(top_directory_percents) + [other_percent]
         wrapped_labels_pie_data = wrap_labels(pie_labels)
 
         ax_total_comparison = fig.add_subplot(2, 2, 1)
         ax_total_comparison.pie(pie_data, labels=wrapped_labels_pie_data, autopct='%1.1f%%', startangle=90,
                                 labeldistance=1.3)
-        ax_total_comparison.set_title('TOP Diretórios mais sensíveis', fontsize=10, fontweight='bold')
+        ax_total_comparison.set_title('Comparação dos TOP Diretórios com os demais', fontsize=10, fontweight='bold')
 
         # Gráficos detalhados para cada TOP diretório
         for i, directory in enumerate(top_directories.index):
