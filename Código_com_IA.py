@@ -1,4 +1,4 @@
-# Antes de tudo instale no terminal > pip install PyMuPDF
+# Antes de tudo instale no terminall > pip install PyMuPDF
 # Antes de tudo instale no terminal > pip install google-cloud-vision
 # Antes de tudo instale no terminal > pip install python-docx
 # Antes de tudo instale no terminal > pip install python-pptx
